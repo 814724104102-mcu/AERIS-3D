@@ -3,6 +3,7 @@ AERIS-3D — Configuration Loader
 Loads configs/default.yaml and merges with optional override files.
 All pipeline parameters must come from here — never hardcoded.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -12,7 +13,7 @@ from typing import Any
 
 import yaml
 
-from core.logger import get_logger, configure_from_config
+from core.logger import configure_from_config, get_logger
 
 log = get_logger("config")
 

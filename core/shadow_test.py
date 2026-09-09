@@ -12,6 +12,7 @@ Algorithm:
 
 All sun-angle values are read from actual metadata — never assumed.
 """
+
 from __future__ import annotations
 
 import time
@@ -20,9 +21,9 @@ from typing import Optional
 
 import numpy as np
 
-from core.logger import get_logger
-from core.structure_engine import StructureResult, StructureRegion
 from core.candidate_generator import CandidateGeometry
+from core.logger import get_logger
+from core.structure_engine import StructureRegion, StructureResult
 
 log = get_logger("shadow_test")
 
@@ -31,14 +32,14 @@ log = get_logger("shadow_test")
 class ShadowTestResult:
     shadow_available: bool
     shadow_reliable: bool
-    shadow_reliability: float           # 0-1
+    shadow_reliability: float  # 0-1
     sun_elevation_deg: Optional[float]  # None if unknown
-    sun_azimuth_deg: Optional[float]    # None if unknown
-    shadow_region_mask: Optional[np.ndarray]   # HxW bool
-    shadow_fraction: float              # fraction of image that is shadow
+    sun_azimuth_deg: Optional[float]  # None if unknown
+    shadow_region_mask: Optional[np.ndarray]  # HxW bool
+    shadow_fraction: float  # fraction of image that is shadow
     # Per-candidate shadow scores {candidate_id: score}
     candidate_shadow_scores: dict[str, float]
-    effective_weight: float             # 0 if unreliable
+    effective_weight: float  # 0 if unreliable
     runtime_s: float
 
 
@@ -47,7 +48,7 @@ def run_shadow_test(
     depth_map: np.ndarray,
     structure_result: StructureResult,
     candidates: list[CandidateGeometry],
-    georef,                             # GeoRef or None
+    georef,  # GeoRef or None
     config: dict,
 ) -> ShadowTestResult:
     """
@@ -71,7 +72,9 @@ def run_shadow_test(
     min_coverage = float(sh_cfg.get("reliability_min_area_fraction", 0.01))
     unreliable_weight = float(sh_cfg.get("weight_when_unreliable", 0.0))
 
-    log.info("Running shadow test | dark_thresh=%.2f | min_area=%d", dark_thresh, min_area)
+    log.info(
+        "Running shadow test | dark_thresh=%.2f | min_area=%d", dark_thresh, min_area
+    )
 
     # ── 1. Try to get sun angle from metadata ─────────────────
     sun_elevation: Optional[float] = None
@@ -81,7 +84,9 @@ def run_shadow_test(
         # Satellite GeoTIFFs sometimes embed sun angle in metadata.
         # We check common metadata fields but do NOT fabricate sun angle.
         # (rasterio doesn't expose this through standard tags in most cases)
-        log.debug("GeoRef present — sun angle may be available in extended metadata (not checked here).")
+        log.debug(
+            "GeoRef present — sun angle may be available in extended metadata (not checked here)."
+        )
 
     # ── 2. Detect shadow regions geometrically ─────────────────
     h, w = image_rgb.shape[:2]
@@ -99,17 +104,22 @@ def run_shadow_test(
         log.info("Shadow: not detected | fraction=%.4f", shadow_fraction)
     elif not shadow_reliable:
         reliability = 0.2
-        log.info("Shadow: detected but sparse | fraction=%.4f | reliability=%.2f",
-                 shadow_fraction, reliability)
+        log.info(
+            "Shadow: detected but sparse | fraction=%.4f | reliability=%.2f",
+            shadow_fraction,
+            reliability,
+        )
     else:
         # Reliability scales with shadow area and sun-angle availability
         reliability = min(0.9, 0.5 + shadow_fraction * 5.0)
         if sun_elevation is not None:
             reliability = min(1.0, reliability + 0.2)
-        log.info("Shadow: detected | fraction=%.4f | sun_elev=%s | reliability=%.2f",
-                 shadow_fraction,
-                 f"{sun_elevation:.1f}°" if sun_elevation else "UNKNOWN",
-                 reliability)
+        log.info(
+            "Shadow: detected | fraction=%.4f | sun_elev=%s | reliability=%.2f",
+            shadow_fraction,
+            f"{sun_elevation:.1f}°" if sun_elevation else "UNKNOWN",
+            reliability,
+        )
 
     # ── 4. Compute per-candidate shadow scores ─────────────────
     candidate_scores: dict[str, float] = {}
@@ -128,8 +138,13 @@ def run_shadow_test(
     effective_weight = unreliable_weight if not shadow_reliable else reliability * 0.5
     runtime_s = time.perf_counter() - t0
 
-    log.info("Shadow test done | available=%s | reliable=%s | eff_weight=%.2f | %.3fs",
-             shadow_available, shadow_reliable, effective_weight, runtime_s)
+    log.info(
+        "Shadow test done | available=%s | reliable=%s | eff_weight=%.2f | %.3fs",
+        shadow_available,
+        shadow_reliable,
+        effective_weight,
+        runtime_s,
+    )
 
     return ShadowTestResult(
         shadow_available=shadow_available,
@@ -149,6 +164,7 @@ def _remove_small_components(mask: np.ndarray, min_area: int) -> np.ndarray:
     """Remove connected components smaller than min_area pixels."""
     try:
         import cv2
+
         m = mask.astype(np.uint8)
         n, labels = cv2.connectedComponents(m, connectivity=8)
         out = np.zeros_like(m, dtype=bool)
@@ -204,8 +220,11 @@ def _compute_shadow_score_for_candidate(
     # Expected shadow length for this candidate height (in pixels, relative units)
     if sun_elevation is not None and sun_elevation > 5.0:
         import math
+
         # shadow_length = height / tan(elevation) → in depth-unit relative
-        expected_ratio = cand.height_value / max(math.tan(math.radians(sun_elevation)), 0.1)
+        expected_ratio = cand.height_value / max(
+            math.tan(math.radians(sun_elevation)), 0.1
+        )
         actual_ratio = shadow_length_px / max(structure_size_px, 1.0)
         # We can't directly compare expected_ratio (in metres) to actual_ratio (in pixels)
         # without GSD. Use a relative comparison across candidates instead.

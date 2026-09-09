@@ -3,6 +3,7 @@ AERIS-3D — Hardware Detection
 Auto-detects the best compute backend: CUDA → MPS → CPU.
 Never crashes if GPU libraries are unavailable.
 """
+
 from __future__ import annotations
 
 import os
@@ -67,8 +68,10 @@ def detect_hardware() -> HardwareInfo:
             device_name = "CPU"
 
     except ImportError:
-        log.warning("PyTorch not installed — running on CPU-only mode. "
-                    "Install torch for GPU acceleration.")
+        log.warning(
+            "PyTorch not installed — running on CPU-only mode. "
+            "Install torch for GPU acceleration."
+        )
 
     info = HardwareInfo(
         device=device,

@@ -8,6 +8,7 @@ Output: List[CandidateGeometry] — each carries candidate_id, object_id,
 
 Heights are labeled RELATIVE unless a metric anchor is available from TerrainResult.
 """
+
 from __future__ import annotations
 
 import time
@@ -17,7 +18,7 @@ from typing import Optional
 import numpy as np
 
 from core.logger import get_logger
-from core.structure_engine import StructureResult, StructureRegion
+from core.structure_engine import StructureRegion, StructureResult
 from core.terrain_solver import TerrainResult
 
 log = get_logger("candidate_generator")
@@ -30,15 +31,15 @@ class CandidateGeometry:
 
     # Height in depth-units (RELATIVE) or metres (ANCHORED_METRIC)
     height_value: float
-    height_unit: str                    # "RELATIVE_DEPTH_UNITS" | "METRES_ESTIMATED"
+    height_unit: str  # "RELATIVE_DEPTH_UNITS" | "METRES_ESTIMATED"
 
-    terrain_baseline: float             # terrain depth at object location
+    terrain_baseline: float  # terrain depth at object location
     geometry_parameters: dict = field(default_factory=dict)
 
     # Set by scoring engine later
     consistency_score: float = 0.0
     component_scores: dict = field(default_factory=dict)
-    status: str = "TESTING"             # TESTING | SURVIVED | REJECTED
+    status: str = "TESTING"  # TESTING | SURVIVED | REJECTED
     rejection_reason: Optional[str] = None
     iteration_eliminated: Optional[int] = None
 
@@ -71,8 +72,14 @@ def generate_candidates(
     scale_mode = terrain_result.scale_mode
 
     buildings = structure_result.buildings
-    log.info("Generating candidates | buildings=%d | range=[%.1f, %.1f] step=%.1f | scale=%s",
-             len(buildings), min_h, max_h, step_h, scale_mode)
+    log.info(
+        "Generating candidates | buildings=%d | range=[%.1f, %.1f] step=%.1f | scale=%s",
+        len(buildings),
+        min_h,
+        max_h,
+        step_h,
+        scale_mode,
+    )
 
     if not buildings:
         log.warning("No building regions detected — no candidates generated.")
@@ -88,9 +95,11 @@ def generate_candidates(
 
     for region in buildings:
         obj_id = region.object_id
-        terrain_at_object = float(terrain_result.terrain_surface[
-            int(region.centroid[0]), int(region.centroid[1])
-        ])
+        terrain_at_object = float(
+            terrain_result.terrain_surface[
+                int(region.centroid[0]), int(region.centroid[1])
+            ]
+        )
         depth_offset = region.depth_relative_to_terrain  # positive = above terrain
 
         # ── Adaptive range narrowing ────────────────────────────
@@ -112,15 +121,23 @@ def generate_candidates(
             adaptive_max = max_h
             adaptive_step = step_h
 
-        candidate_heights = np.arange(adaptive_min, adaptive_max + adaptive_step * 0.1, adaptive_step)
+        candidate_heights = np.arange(
+            adaptive_min, adaptive_max + adaptive_step * 0.1, adaptive_step
+        )
 
         # Ensure at least 4 candidates for a meaningful rejection demonstration
         if len(candidate_heights) < 4:
             candidate_heights = np.linspace(min_h, max_h, max(5, top_k + 2))
 
-        log.debug("Object %s | depth_offset=%.4f | adaptive=[%.1f, %.1f] step=%.1f | %d candidates",
-                  obj_id, depth_offset, adaptive_min, adaptive_max, adaptive_step,
-                  len(candidate_heights))
+        log.debug(
+            "Object %s | depth_offset=%.4f | adaptive=[%.1f, %.1f] step=%.1f | %d candidates",
+            obj_id,
+            depth_offset,
+            adaptive_min,
+            adaptive_max,
+            adaptive_step,
+            len(candidate_heights),
+        )
 
         for h_val in candidate_heights:
             cand_id = f"H{cand_counter:04d}"
@@ -131,12 +148,15 @@ def generate_candidates(
                 "footprint_bbox": list(bbox),
                 "centroid": list(region.centroid),
                 "area_px": region.area_px,
-                "expected_depth_at_top": float(terrain_at_object + h_val / (max_h + 1) * depth_scene_range),
+                "expected_depth_at_top": float(
+                    terrain_at_object + h_val / (max_h + 1) * depth_scene_range
+                ),
                 "aspect_ratio": _bbox_aspect_ratio(bbox),
             }
 
             unit = (
-                "METRES_ESTIMATED" if scale_mode == "ANCHORED_METRIC"
+                "METRES_ESTIMATED"
+                if scale_mode == "ANCHORED_METRIC"
                 else "RELATIVE_DEPTH_UNITS"
             )
 
@@ -152,8 +172,12 @@ def generate_candidates(
             cand_counter += 1
 
     runtime_s = time.perf_counter() - t0
-    log.info("Candidates generated | total=%d across %d buildings | %.3fs",
-             len(all_candidates), len(buildings), runtime_s)
+    log.info(
+        "Candidates generated | total=%d across %d buildings | %.3fs",
+        len(all_candidates),
+        len(buildings),
+        runtime_s,
+    )
     return all_candidates
 
 

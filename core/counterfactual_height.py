@@ -20,6 +20,7 @@ ISCL adds:
 
 All scoring is vectorized and runs at reduced projection_resolution for speed.
 """
+
 from __future__ import annotations
 
 import time
@@ -28,9 +29,9 @@ from typing import Optional
 
 import numpy as np
 
-from core.logger import get_logger
-from core.structure_engine import StructureResult, StructureRegion
 from core.candidate_generator import CandidateGeometry
+from core.logger import get_logger
+from core.structure_engine import StructureRegion, StructureResult
 from core.terrain_solver import TerrainResult
 
 log = get_logger("counterfactual_height")
@@ -42,19 +43,19 @@ class CandidateScore:
     object_id: str
     height_value: float
     height_unit: str
-    edge_overlap: float               # 0-1
-    depth_agreement: float            # 0-1
-    boundary_match: float             # 0-1
-    silhouette_alignment: float       # 0-1
-    region_consistency: float         # 0-1
-    overall_chf_score: float          # weighted combination of above
+    edge_overlap: float  # 0-1
+    depth_agreement: float  # 0-1
+    boundary_match: float  # 0-1
+    silhouette_alignment: float  # 0-1
+    region_consistency: float  # 0-1
+    overall_chf_score: float  # weighted combination of above
 
 
 @dataclass
 class CHFResult:
     candidate_scores: list[CandidateScore]
-    height_fingerprint: dict          # {object_id: {heights: [...], scores: [...]}}
-    best_supported_per_object: dict   # {object_id: CandidateScore}
+    height_fingerprint: dict  # {object_id: {heights: [...], scores: [...]}}
+    best_supported_per_object: dict  # {object_id: CandidateScore}
     runtime_s: float
 
 
@@ -84,12 +85,21 @@ def run_chf_iscl(
     depth_w = float(cf_cfg.get("depth_agreement_weight", 0.30))
     bound_w = float(cf_cfg.get("segmentation_boundary_weight", 0.30))
 
-    log.info("Running CHF+ISCL | candidates=%d | weights=(edge=%.2f depth=%.2f bound=%.2f)",
-             len(candidates), edge_w, depth_w, bound_w)
+    log.info(
+        "Running CHF+ISCL | candidates=%d | weights=(edge=%.2f depth=%.2f bound=%.2f)",
+        len(candidates),
+        edge_w,
+        depth_w,
+        bound_w,
+    )
 
     if not candidates:
-        return CHFResult(candidate_scores=[], height_fingerprint={},
-                         best_supported_per_object={}, runtime_s=0.0)
+        return CHFResult(
+            candidate_scores=[],
+            height_fingerprint={},
+            best_supported_per_object={},
+            runtime_s=0.0,
+        )
 
     h, w = depth_map.shape
     depth_range = float(depth_map.max() - depth_map.min())
@@ -147,8 +157,13 @@ def run_chf_iscl(
         }
         best = max(obj_scored, key=lambda s: s.overall_chf_score)
         best_per_object[obj_id] = best
-        log.info("Object %s | best_supported_height=%.2f %s | score=%.3f",
-                 obj_id, best.height_value, best.height_unit, best.overall_chf_score)
+        log.info(
+            "Object %s | best_supported_height=%.2f %s | score=%.3f",
+            obj_id,
+            best.height_value,
+            best.height_unit,
+            best.overall_chf_score,
+        )
 
     runtime_s = time.perf_counter() - t0
     log.info("CHF+ISCL done | scored=%d candidates | %.3fs", len(all_scores), runtime_s)
@@ -164,6 +179,7 @@ def run_chf_iscl(
 # ─────────────────────────────────────────────────────────────
 # Per-region candidate scoring
 # ─────────────────────────────────────────────────────────────
+
 
 def _score_candidates_for_region(
     candidates: list[CandidateGeometry],
@@ -194,10 +210,16 @@ def _score_candidates_for_region(
     region_depth_std = float(region_depths.std())
 
     # Edge overlap at boundary: fraction of boundary pixels with an image edge
-    boundary_edge_overlap = float(edge_map_f[boundary_pixels].mean()) if boundary_pixels.sum() > 0 else 0.0
+    boundary_edge_overlap = (
+        float(edge_map_f[boundary_pixels].mean()) if boundary_pixels.sum() > 0 else 0.0
+    )
 
     # Boundary match: depth boundary at region boundary
-    boundary_depth_match = float(boundary_map[boundary_pixels].mean()) if boundary_pixels.sum() > 0 else 0.0
+    boundary_depth_match = (
+        float(boundary_map[boundary_pixels].mean())
+        if boundary_pixels.sum() > 0
+        else 0.0
+    )
     boundary_depth_match_norm = min(1.0, boundary_depth_match * 2.0)
 
     # Terrain depth at region centroid
@@ -236,7 +258,9 @@ def _score_candidates_for_region(
         # visible edges. We use the region's actual boundary as proxy.
         # Taller buildings → stronger edges (more depth discontinuity)
         # Score = boundary_edge_overlap scaled by a function of height
-        height_edge_factor = min(1.0, h_val / 20.0)  # expect strong edges for tall buildings
+        height_edge_factor = min(
+            1.0, h_val / 20.0
+        )  # expect strong edges for tall buildings
         edge_score = float(boundary_edge_overlap * (0.5 + 0.5 * height_edge_factor))
 
         # ── Boundary match (ISCL silhouette component) ──────────
@@ -250,12 +274,14 @@ def _score_candidates_for_region(
         if region_depth_std < depth_range * 0.05:
             interior_consistency = 0.8  # consistent interior → good
         else:
-            interior_consistency = float(np.exp(-region_depth_std / (depth_range * 0.1)))
+            interior_consistency = float(
+                np.exp(-region_depth_std / (depth_range * 0.1))
+            )
 
         # ── Structural plausibility ─────────────────────────────
         # Physical building heights typically 3–60m, peak density around 8–25m
         # Use a soft Gaussian penalty for implausible extremes
-        struct_plausibility = float(np.exp(-0.002 * (h_val - 15.0)**2))
+        struct_plausibility = float(np.exp(-0.002 * (h_val - 15.0) ** 2))
 
         # ── CHF overall score ───────────────────────────────────
         chf_score = (
@@ -273,18 +299,20 @@ def _score_candidates_for_region(
         noise = rng.normal(0, 0.02)
         chf_score = float(np.clip(chf_score + noise, 0.0, 1.0))
 
-        scores_out.append(CandidateScore(
-            candidate_id=cand.candidate_id,
-            object_id=cand.object_id,
-            height_value=h_val,
-            height_unit=cand.height_unit,
-            edge_overlap=float(np.clip(edge_score, 0, 1)),
-            depth_agreement=float(np.clip(depth_agree, 0, 1)),
-            boundary_match=float(np.clip(silhouette_score, 0, 1)),
-            silhouette_alignment=float(np.clip(interior_consistency, 0, 1)),
-            region_consistency=float(np.clip(struct_plausibility, 0, 1)),
-            overall_chf_score=chf_score,
-        ))
+        scores_out.append(
+            CandidateScore(
+                candidate_id=cand.candidate_id,
+                object_id=cand.object_id,
+                height_value=h_val,
+                height_unit=cand.height_unit,
+                edge_overlap=float(np.clip(edge_score, 0, 1)),
+                depth_agreement=float(np.clip(depth_agree, 0, 1)),
+                boundary_match=float(np.clip(silhouette_score, 0, 1)),
+                silhouette_alignment=float(np.clip(interior_consistency, 0, 1)),
+                region_consistency=float(np.clip(struct_plausibility, 0, 1)),
+                overall_chf_score=chf_score,
+            )
+        )
 
     return scores_out
 
@@ -293,6 +321,7 @@ def _region_boundary(mask: np.ndarray) -> np.ndarray:
     """Return a bool mask of the boundary pixels of a binary mask."""
     try:
         import cv2
+
         mask_u8 = mask.astype(np.uint8)
         kernel = np.ones((3, 3), np.uint8)
         dilated = cv2.dilate(mask_u8, kernel, iterations=1)
@@ -301,4 +330,5 @@ def _region_boundary(mask: np.ndarray) -> np.ndarray:
         return boundary
     except Exception:
         from scipy.ndimage import binary_dilation, binary_erosion
+
         return binary_dilation(mask) & ~binary_erosion(mask)

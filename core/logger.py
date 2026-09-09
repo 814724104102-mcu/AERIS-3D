@@ -2,6 +2,7 @@
 AERIS-3D — Centralized Logging
 All modules import from here. Writes to both console and rotating file.
 """
+
 from __future__ import annotations
 
 import logging
@@ -10,7 +11,6 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional
-
 
 _INITIALIZED = False
 _LOGGER_NAME = "aeris3d"

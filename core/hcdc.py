@@ -13,6 +13,7 @@ Key operations:
 - Region-aware correction: snap region interior to a consistent depth level
 - Output: corrected_depth, correction_map, structural_boundary_map
 """
+
 from __future__ import annotations
 
 import time
@@ -28,10 +29,12 @@ log = get_logger("hcdc")
 
 @dataclass
 class HCDCResult:
-    corrected_depth: np.ndarray         # HxW float32 (corrected relative depth)
-    correction_map: np.ndarray          # HxW float32  magnitude of correction applied
-    structural_boundary_map: np.ndarray # HxW float32  combined image+depth boundary strength
-    flagged_fraction: float             # fraction of pixels flagged as inconsistent
+    corrected_depth: np.ndarray  # HxW float32 (corrected relative depth)
+    correction_map: np.ndarray  # HxW float32  magnitude of correction applied
+    structural_boundary_map: (
+        np.ndarray
+    )  # HxW float32  combined image+depth boundary strength
+    flagged_fraction: float  # fraction of pixels flagged as inconsistent
     runtime_s: float
 
 
@@ -60,8 +63,12 @@ def apply_hcdc(
     consistency_radius = int(cfg.get("local_consistency_radius", 5))
     correction_strength = float(cfg.get("correction_strength", 0.4))
 
-    log.info("Applying HCDC | sigma=%.1f | grad_thresh=%.2f | strength=%.2f",
-             sigma, grad_thresh, correction_strength)
+    log.info(
+        "Applying HCDC | sigma=%.1f | grad_thresh=%.2f | strength=%.2f",
+        sigma,
+        grad_thresh,
+        correction_strength,
+    )
 
     import cv2
     from scipy.ndimage import gaussian_filter, uniform_filter
@@ -133,8 +140,12 @@ def apply_hcdc(
     final_correction_map = np.abs(corrected - depth_map).astype(np.float32)
     runtime_s = time.perf_counter() - t0
 
-    log.info("HCDC done | flagged=%.1f%% | max_correction=%.4f | %.3fs",
-             flagged_fraction * 100, float(final_correction_map.max()), runtime_s)
+    log.info(
+        "HCDC done | flagged=%.1f%% | max_correction=%.4f | %.3fs",
+        flagged_fraction * 100,
+        float(final_correction_map.max()),
+        runtime_s,
+    )
 
     return HCDCResult(
         corrected_depth=corrected.astype(np.float32),

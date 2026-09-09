@@ -11,6 +11,7 @@ Covers:
 - Device detection integration
 - Output shape matches input shape
 """
+
 from __future__ import annotations
 
 import sys
@@ -62,6 +63,7 @@ def small_image():
 # gradient_stub backend (no model download)
 # ──────────────────────────────────────────────────────────────
 
+
 class TestGradientStub:
     def test_returns_depth_result(self, stub_cfg, sample_image):
         engine = DepthEngine(stub_cfg)
@@ -76,17 +78,17 @@ class TestGradientStub:
     def test_depth_map_shape_matches_input(self, stub_cfg, sample_image):
         engine = DepthEngine(stub_cfg)
         result = engine.estimate(sample_image, "hash_shape", "cfg_v0")
-        assert result.depth_map.shape == sample_image.shape[:2], (
-            f"Expected {sample_image.shape[:2]}, got {result.depth_map.shape}"
-        )
+        assert (
+            result.depth_map.shape == sample_image.shape[:2]
+        ), f"Expected {sample_image.shape[:2]}, got {result.depth_map.shape}"
 
     def test_normalized_depth_in_0_1(self, stub_cfg, sample_image):
         engine = DepthEngine(stub_cfg)
         result = engine.estimate(sample_image, "hash_norm", "cfg_v0")
         nd = result.normalized_depth
-        assert nd.min() >= -0.001 and nd.max() <= 1.001, (
-            f"normalized_depth out of range: [{nd.min():.4f}, {nd.max():.4f}]"
-        )
+        assert (
+            nd.min() >= -0.001 and nd.max() <= 1.001
+        ), f"normalized_depth out of range: [{nd.min():.4f}, {nd.max():.4f}]"
 
     def test_normalized_depth_dtype(self, stub_cfg, sample_image):
         engine = DepthEngine(stub_cfg)
@@ -102,9 +104,9 @@ class TestGradientStub:
         """relative_only must always be True — it's never overridden by the engine itself."""
         engine = DepthEngine(stub_cfg)
         result = engine.estimate(sample_image, "hash_rel", "cfg_v0")
-        assert result.depth_metadata.relative_only is True, (
-            "relative_only must be True — metric anchoring is the terrain_solver's job"
-        )
+        assert (
+            result.depth_metadata.relative_only is True
+        ), "relative_only must be True — metric anchoring is the terrain_solver's job"
 
     def test_metadata_model_name(self, stub_cfg, sample_image):
         engine = DepthEngine(stub_cfg)
@@ -131,6 +133,7 @@ class TestGradientStub:
 # Cache behaviour
 # ──────────────────────────────────────────────────────────────
 
+
 class TestCaching:
     def test_cache_miss_on_first_call(self, stub_cfg, sample_image):
         engine = DepthEngine(stub_cfg)
@@ -154,8 +157,10 @@ class TestCaching:
         r1 = engine.estimate(sample_image, "hash_cv", "cfg_cv")
         r2 = engine.estimate(sample_image, "hash_cv", "cfg_cv")
         np.testing.assert_array_almost_equal(
-            r1.depth_map, r2.depth_map, decimal=5,
-            err_msg="Cached depth map differs from original"
+            r1.depth_map,
+            r2.depth_map,
+            decimal=5,
+            err_msg="Cached depth map differs from original",
         )
 
     def test_cache_disabled(self, tmp_path, sample_image):
@@ -174,6 +179,7 @@ class TestCaching:
 # Non-square images
 # ──────────────────────────────────────────────────────────────
 
+
 class TestNonSquareImages:
     @pytest.mark.parametrize("shape", [(128, 256), (300, 100), (64, 512)])
     def test_output_shape_matches_input(self, stub_cfg, shape):
@@ -181,6 +187,6 @@ class TestNonSquareImages:
         img = rng.integers(0, 255, (*shape, 3), dtype=np.uint8)
         engine = DepthEngine(stub_cfg)
         result = engine.estimate(img, f"hash_{shape[0]}x{shape[1]}", "cfg_ns")
-        assert result.depth_map.shape == shape, (
-            f"Expected {shape}, got {result.depth_map.shape}"
-        )
+        assert (
+            result.depth_map.shape == shape
+        ), f"Expected {shape}, got {result.depth_map.shape}"

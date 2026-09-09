@@ -8,6 +8,7 @@ SCIENTIFIC HONESTY:
   If an anchor is available, outputs are labeled ANCHORED_METRIC.
   The two are never blurred together.
 """
+
 from __future__ import annotations
 
 import time
@@ -27,19 +28,19 @@ ANCHORED_LABEL = "ANCHORED_METRIC"
 
 @dataclass
 class TerrainResult:
-    terrain_surface: np.ndarray         # HxW float32 — estimated local ground elevation
-    object_height_map: np.ndarray       # HxW float32 — height above terrain per pixel
-    scale_mode: str                     # RELATIVE | ANCHORED_METRIC
-    pixels_per_meter: Optional[float]   # None if RELATIVE
-    terrain_depth_level: float          # depth value reference for terrain
-    terrain_roughness: float            # std of terrain surface within ground pixels
+    terrain_surface: np.ndarray  # HxW float32 — estimated local ground elevation
+    object_height_map: np.ndarray  # HxW float32 — height above terrain per pixel
+    scale_mode: str  # RELATIVE | ANCHORED_METRIC
+    pixels_per_meter: Optional[float]  # None if RELATIVE
+    terrain_depth_level: float  # depth value reference for terrain
+    terrain_roughness: float  # std of terrain surface within ground pixels
     runtime_s: float
 
 
 def solve_terrain(
     corrected_depth: np.ndarray,
     structure_result: StructureResult,
-    georef,                             # GeoRef or None
+    georef,  # GeoRef or None
     config: dict,
 ) -> TerrainResult:
     """
@@ -67,6 +68,7 @@ def solve_terrain(
 
     # ── 1. Build ground mask ────────────────────────────────────
     from core.structure_engine import CLASSES
+
     label_map = structure_result.label_map
     road_idx = CLASSES.index("road")
     terrain_idx = CLASSES.index("terrain")
@@ -76,7 +78,9 @@ def solve_terrain(
         # Fallback: use lowest 20th percentile of depth as terrain
         threshold = float(np.percentile(corrected_depth, 20))
         ground_mask = corrected_depth <= threshold
-        log.warning("Insufficient ground pixels — using depth percentile as terrain proxy.")
+        log.warning(
+            "Insufficient ground pixels — using depth percentile as terrain proxy."
+        )
 
     # ── 2. Terrain surface estimation ──────────────────────────
     # Fill ground depths, interpolate over building/other regions
@@ -111,16 +115,27 @@ def solve_terrain(
             pixels_per_meter = 1.0 / px_size if px_size < 1.0 else None
             if pixels_per_meter is not None:
                 scale_mode = ANCHORED_LABEL
-                log.info("Terrain scale: %.2f px/m from GeoTIFF CRS pixel size", pixels_per_meter)
+                log.info(
+                    "Terrain scale: %.2f px/m from GeoTIFF CRS pixel size",
+                    pixels_per_meter,
+                )
             else:
-                log.info("GeoTIFF pixel size %.6f degrees — metric scale requires proj. Not anchoring.", px_size)
+                log.info(
+                    "GeoTIFF pixel size %.6f degrees — metric scale requires proj. Not anchoring.",
+                    px_size,
+                )
 
     if scale_mode == RELATIVE_LABEL:
         log.info("Terrain mode: RELATIVE — no metric anchor available.")
 
     runtime_s = time.perf_counter() - t0
-    log.info("Terrain solved | mode=%s | terrain_level=%.4f | roughness=%.4f | %.3fs",
-             scale_mode, terrain_depth_level, terrain_roughness, runtime_s)
+    log.info(
+        "Terrain solved | mode=%s | terrain_level=%.4f | roughness=%.4f | %.3fs",
+        scale_mode,
+        terrain_depth_level,
+        terrain_roughness,
+        runtime_s,
+    )
 
     return TerrainResult(
         terrain_surface=terrain_surface,

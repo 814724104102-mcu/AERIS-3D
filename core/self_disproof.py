@@ -18,6 +18,7 @@ Algorithm:
 
 Returns the winning candidate per object + a full rejection log.
 """
+
 from __future__ import annotations
 
 import time
@@ -26,8 +27,8 @@ from typing import Optional
 
 import numpy as np
 
-from core.logger import get_logger
 from core.candidate_generator import CandidateGeometry
+from core.logger import get_logger
 from core.scoring_engine import EvidenceScore
 
 log = get_logger("self_disproof")
@@ -40,7 +41,7 @@ class IterationLog:
     object_id: str
     height_value: float
     score: float
-    status: str                  # TESTING | SURVIVED | REJECTED
+    status: str  # TESTING | SURVIVED | REJECTED
     rejection_reason: Optional[str]
     refinement: Optional[str]
 
@@ -48,8 +49,9 @@ class IterationLog:
 @dataclass
 class SDRLResult:
     """Result of the Self-Disproving Reconstruction Loop."""
+
     # Per-object survivors (best supported)
-    survivors: dict[str, EvidenceScore]       # object_id → winning EvidenceScore
+    survivors: dict[str, EvidenceScore]  # object_id → winning EvidenceScore
     # Per-object rejected candidates
     rejected: dict[str, list[EvidenceScore]]  # object_id → list of rejected
     # Full iteration log (judge-facing)
@@ -99,8 +101,12 @@ def run_sdrl(
     min_survivors = int(sdrl_cfg.get("min_survivors", 1))
     reject_thresh = float(config.get("scoring", {}).get("rejection_threshold", 0.35))
 
-    log.info("Running SDRL | candidates=%d | max_iter=%d | threshold=%.2f",
-             len(candidates), max_iter, reject_thresh)
+    log.info(
+        "Running SDRL | candidates=%d | max_iter=%d | threshold=%.2f",
+        len(candidates),
+        max_iter,
+        reject_thresh,
+    )
 
     # Group by object_id
     by_object: dict[str, list[EvidenceScore]] = {}
@@ -113,7 +119,9 @@ def run_sdrl(
     convergence_iters: dict[str, int] = {}
 
     for obj_id, obj_scores in by_object.items():
-        obj_scores_sorted = sorted(obj_scores, key=lambda x: x.overall_score, reverse=True)
+        obj_scores_sorted = sorted(
+            obj_scores, key=lambda x: x.overall_score, reverse=True
+        )
         obj_logs, survivor, obj_rejected, n_iters = _run_sdrl_for_object(
             obj_id=obj_id,
             scores=obj_scores_sorted,
@@ -138,8 +146,12 @@ def run_sdrl(
         )
 
     runtime_s = time.perf_counter() - t0
-    log.info("SDRL complete | %d objects | %d total log entries | %.3fs",
-             len(survivors), len(all_logs), runtime_s)
+    log.info(
+        "SDRL complete | %d objects | %d total log entries | %.3fs",
+        len(survivors),
+        len(all_logs),
+        runtime_s,
+    )
 
     return SDRLResult(
         survivors=survivors,
@@ -179,28 +191,32 @@ def _run_sdrl_for_object(
             is_contradicted = _check_contradiction(es, surviving)
             if es.overall_score < current_thresh or is_contradicted:
                 reason = _rejection_reason(es, current_thresh, is_contradicted)
-                logs.append(IterationLog(
-                    iteration=iteration,
-                    candidate_id=es.candidate_id,
-                    object_id=obj_id,
-                    height_value=es.height_value,
-                    score=es.overall_score,
-                    status="REJECTED",
-                    rejection_reason=reason,
-                    refinement=None,
-                ))
+                logs.append(
+                    IterationLog(
+                        iteration=iteration,
+                        candidate_id=es.candidate_id,
+                        object_id=obj_id,
+                        height_value=es.height_value,
+                        score=es.overall_score,
+                        status="REJECTED",
+                        rejection_reason=reason,
+                        refinement=None,
+                    )
+                )
                 iter_rejected.append(es)
             else:
-                logs.append(IterationLog(
-                    iteration=iteration,
-                    candidate_id=es.candidate_id,
-                    object_id=obj_id,
-                    height_value=es.height_value,
-                    score=es.overall_score,
-                    status="SURVIVED",
-                    rejection_reason=None,
-                    refinement=f"iteration_{iteration}_survivor",
-                ))
+                logs.append(
+                    IterationLog(
+                        iteration=iteration,
+                        candidate_id=es.candidate_id,
+                        object_id=obj_id,
+                        height_value=es.height_value,
+                        score=es.overall_score,
+                        status="SURVIVED",
+                        rejection_reason=None,
+                        refinement=f"iteration_{iteration}_survivor",
+                    )
+                )
                 new_surviving.append(es)
 
         rejected_list.extend(iter_rejected)
@@ -209,8 +225,12 @@ def _run_sdrl_for_object(
         if new_surviving:
             best_score = new_surviving[0].overall_score
             if abs(best_score - prev_best_score) < conv_delta and iteration > 0:
-                log.debug("SDRL [%s] converged at iteration %d (delta=%.4f)",
-                          obj_id, iteration, abs(best_score - prev_best_score))
+                log.debug(
+                    "SDRL [%s] converged at iteration %d (delta=%.4f)",
+                    obj_id,
+                    iteration,
+                    abs(best_score - prev_best_score),
+                )
                 surviving = new_surviving
                 n_iters = iteration + 1
                 break
@@ -220,8 +240,11 @@ def _run_sdrl_for_object(
             current_thresh = min(current_thresh * 1.08, 0.85)
         else:
             # Nothing survived this iteration — restore previous survivors
-            log.warning("SDRL [%s] iteration %d: all candidates rejected — restoring previous.",
-                        obj_id, iteration)
+            log.warning(
+                "SDRL [%s] iteration %d: all candidates rejected — restoring previous.",
+                obj_id,
+                iteration,
+            )
             # Un-reject the last batch and stop
             for es in iter_rejected:
                 rejected_list.remove(es)
@@ -234,16 +257,18 @@ def _run_sdrl_for_object(
         best = max(scores, key=lambda x: x.overall_score)
         surviving = [best]
         rejected_list = [x for x in scores if x.candidate_id != best.candidate_id]
-        logs.append(IterationLog(
-            iteration=n_iters,
-            candidate_id=best.candidate_id,
-            object_id=obj_id,
-            height_value=best.height_value,
-            score=best.overall_score,
-            status="SURVIVED",
-            rejection_reason=None,
-            refinement="fallback_best_score",
-        ))
+        logs.append(
+            IterationLog(
+                iteration=n_iters,
+                candidate_id=best.candidate_id,
+                object_id=obj_id,
+                height_value=best.height_value,
+                score=best.overall_score,
+                status="SURVIVED",
+                rejection_reason=None,
+                refinement="fallback_best_score",
+            )
+        )
 
     # Final iteration log: mark all survivors as SURVIVED
     survivor = surviving[0]  # highest score
@@ -280,12 +305,13 @@ def _rejection_reason(
     """Generate a human-readable rejection reason."""
     reasons = []
     if es.overall_score < threshold:
-        reasons.append(f"overall score {es.overall_score:.3f} < threshold {threshold:.3f}")
+        reasons.append(
+            f"overall score {es.overall_score:.3f} < threshold {threshold:.3f}"
+        )
     if is_contradicted:
         reasons.append("contradicted by higher-scoring candidate on depth_agreement")
     low_comps = [
-        k for k, v in es.component_scores.items()
-        if v < 0.3 and k in es.active_evidence
+        k for k, v in es.component_scores.items() if v < 0.3 and k in es.active_evidence
     ]
     if low_comps:
         reasons.append(f"weak evidence: {', '.join(low_comps)}")

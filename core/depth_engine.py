@@ -16,6 +16,7 @@ CRITICAL SCIENTIFIC HONESTY NOTE:
   Scale anchoring (to GSD, GeoTIFF pixel size, or reference elevation)
   is handled downstream in terrain_solver.py.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -26,8 +27,8 @@ from typing import Optional
 
 import numpy as np
 
-from core.logger import get_logger
 from core.hardware import get_hardware
+from core.logger import get_logger
 
 log = get_logger("depth_engine")
 
@@ -35,14 +36,14 @@ log = get_logger("depth_engine")
 @dataclass
 class DepthMetadata:
     model_name: str
-    model_backend: str            # "depth_anything_v2" | "midas" | "gradient_stub"
-    device: str                   # "cuda" | "mps" | "cpu"
+    model_backend: str  # "depth_anything_v2" | "midas" | "gradient_stub"
+    device: str  # "cuda" | "mps" | "cpu"
     input_height: int
     input_width: int
     output_height: int
     output_width: int
     runtime_s: float
-    relative_only: bool = True    # Always True unless real metric anchor applied
+    relative_only: bool = True  # Always True unless real metric anchor applied
     domain_warning: str = (
         "Output is RELATIVE depth only. Domain shift applies to aerial/satellite "
         "imagery: models were trained on ground-level scenes. Use as structural cue, "
@@ -54,14 +55,15 @@ class DepthMetadata:
 
 @dataclass
 class DepthResult:
-    depth_map: np.ndarray           # HxW float32, raw model output (upsampled to input size)
-    normalized_depth: np.ndarray    # HxW float32, linearly mapped to [0, 1]
+    depth_map: np.ndarray  # HxW float32, raw model output (upsampled to input size)
+    normalized_depth: np.ndarray  # HxW float32, linearly mapped to [0, 1]
     depth_metadata: DepthMetadata
 
 
 # ──────────────────────────────────────────────────────────────
 # Public API
 # ──────────────────────────────────────────────────────────────
+
 
 class DepthEngine:
     """
@@ -77,8 +79,11 @@ class DepthEngine:
         hw = get_hardware()
         self.device = hw.device if hw.torch_available else "cpu"
         self._torch_available = hw.torch_available
-        log.info("DepthEngine initialized | device=%s | torch=%s",
-                 self.device, self._torch_available)
+        log.info(
+            "DepthEngine initialized | device=%s | torch=%s",
+            self.device,
+            self._torch_available,
+        )
 
     def estimate(
         self,
@@ -109,8 +114,13 @@ class DepthEngine:
                 cached.depth_metadata.cache_hit = True
                 return cached
 
-        log.info("Running depth inference | model=%s | device=%s | image=%dx%d",
-                 model_name, self.device, image_rgb.shape[1], image_rgb.shape[0])
+        log.info(
+            "Running depth inference | model=%s | device=%s | image=%dx%d",
+            model_name,
+            self.device,
+            image_rgb.shape[1],
+            image_rgb.shape[0],
+        )
 
         # Route to appropriate backend
         if not self._torch_available and model_name != "gradient_stub":
@@ -125,7 +135,11 @@ class DepthEngine:
             else:
                 depth_raw = self._run_gradient_stub(image_rgb)
         except Exception as exc:
-            log.error("Depth backend '%s' failed: %s — falling back to gradient_stub.", model_name, exc)
+            log.error(
+                "Depth backend '%s' failed: %s — falling back to gradient_stub.",
+                model_name,
+                exc,
+            )
             depth_raw = self._run_gradient_stub(image_rgb)
             model_name = "gradient_stub"
 
@@ -139,11 +153,17 @@ class DepthEngine:
             normalized = (depth_map - d_min) / (d_max - d_min)
         else:
             normalized = np.zeros_like(depth_map)
-            log.warning("Depth map has no variation (min=max=%.4f). Check model/input.", d_min)
+            log.warning(
+                "Depth map has no variation (min=max=%.4f). Check model/input.", d_min
+            )
 
         runtime_s = time.perf_counter() - t0
-        log.info("Depth inference complete | runtime=%.2fs | depth_range=[%.3f, %.3f]",
-                 runtime_s, d_min, d_max)
+        log.info(
+            "Depth inference complete | runtime=%.2fs | depth_range=[%.3f, %.3f]",
+            runtime_s,
+            d_min,
+            d_max,
+        )
 
         meta = DepthMetadata(
             model_name=model_name,
@@ -174,22 +194,30 @@ class DepthEngine:
     # Backend implementations
     # ──────────────────────────────────────────────────────────
 
-    def _run_depth_anything_v2(self, image_rgb: np.ndarray, model_name: str) -> np.ndarray:
+    def _run_depth_anything_v2(
+        self, image_rgb: np.ndarray, model_name: str
+    ) -> np.ndarray:
         """
         Run Depth Anything V2 via HuggingFace Transformers pipeline.
         Downloads from HF hub on first call, then uses local cache.
         """
         import torch  # type: ignore
-        from transformers import pipeline as hf_pipeline  # type: ignore
         from PIL import Image as PILImage  # type: ignore
+        from transformers import pipeline as hf_pipeline  # type: ignore
 
         # Select HF repo based on size variant
         if "large" in model_name:
-            repo = self.depth_cfg.get("hf_repo_large", "depth-anything/Depth-Anything-V2-Large-hf")
+            repo = self.depth_cfg.get(
+                "hf_repo_large", "depth-anything/Depth-Anything-V2-Large-hf"
+            )
         elif "base" in model_name:
-            repo = self.depth_cfg.get("hf_repo_base", "depth-anything/Depth-Anything-V2-Base-hf")
+            repo = self.depth_cfg.get(
+                "hf_repo_base", "depth-anything/Depth-Anything-V2-Base-hf"
+            )
         else:
-            repo = self.depth_cfg.get("hf_repo_small", "depth-anything/Depth-Anything-V2-Small-hf")
+            repo = self.depth_cfg.get(
+                "hf_repo_small", "depth-anything/Depth-Anything-V2-Small-hf"
+            )
 
         # Load model only once
         if self._model is None or self._model_name != model_name:
@@ -200,7 +228,11 @@ class DepthEngine:
             if torch_device == "mps":
                 dtype = torch.float32
             elif torch_device == "cuda":
-                dtype = torch.float16 if self.depth_cfg.get("use_mixed_precision", True) else torch.float32
+                dtype = (
+                    torch.float16
+                    if self.depth_cfg.get("use_mixed_precision", True)
+                    else torch.float32
+                )
             else:
                 dtype = torch.float32
 
@@ -211,7 +243,9 @@ class DepthEngine:
                 dtype=dtype,
             )
             self._model_name = model_name
-            log.info("Depth Anything V2 loaded | device=%s | dtype=%s", torch_device, dtype)
+            log.info(
+                "Depth Anything V2 loaded | device=%s | dtype=%s", torch_device, dtype
+            )
 
         # Run inference
         pil_img = PILImage.fromarray(image_rgb)
@@ -234,7 +268,9 @@ class DepthEngine:
         if self._model is None or self._model_name != "midas":
             log.info("Loading MiDaS %s from torch.hub...", model_type)
             midas = torch.hub.load("intel-isl/MiDaS", model_type, trust_repo=True)
-            transforms = torch.hub.load("intel-isl/MiDaS", "transforms", trust_repo=True)
+            transforms = torch.hub.load(
+                "intel-isl/MiDaS", "transforms", trust_repo=True
+            )
             if model_type in {"DPT_Large", "DPT_Hybrid"}:
                 transform = transforms.dpt_transform
             else:
@@ -281,6 +317,7 @@ class DepthEngine:
         smoothed = gaussian_filter(gray, sigma=3.0)
         # Multi-scale gradient magnitude as a rough depth proxy
         from scipy.ndimage import sobel  # type: ignore
+
         gx = sobel(smoothed, axis=1)
         gy = sobel(smoothed, axis=0)
         gradient_mag = np.sqrt(gx**2 + gy**2)
@@ -341,6 +378,7 @@ class DepthEngine:
 # ──────────────────────────────────────────────────────────────
 # Utilities
 # ──────────────────────────────────────────────────────────────
+
 
 def _resize_depth(depth: np.ndarray, target_hw: tuple[int, int]) -> np.ndarray:
     """Bilinear upsample/downsample depth map to (H, W)."""

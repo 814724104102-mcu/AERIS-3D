@@ -7,6 +7,7 @@ Degrades gracefully when segmentation quality is poor — never raises on bad in
 
 Classes: building, road, vegetation, water, terrain, unknown
 """
+
 from __future__ import annotations
 
 import time
@@ -25,26 +26,26 @@ CLASSES = ["building", "road", "vegetation", "water", "terrain", "unknown"]
 @dataclass
 class StructureRegion:
     object_id: str
-    label: str                          # one of CLASSES
-    mask: np.ndarray                    # HxW bool (original image coords)
-    bbox: tuple                         # (y1, x1, y2, x2) in original image coords
+    label: str  # one of CLASSES
+    mask: np.ndarray  # HxW bool (original image coords)
+    bbox: tuple  # (y1, x1, y2, x2) in original image coords
     area_px: int
-    centroid: tuple                     # (cy, cx)
+    centroid: tuple  # (cy, cx)
     depth_mean: float
     depth_std: float
-    depth_relative_to_terrain: float    # positive = above terrain (closer to camera)
-    color_mean: np.ndarray              # [R, G, B] float
-    confidence: float                   # classifier confidence 0-1
+    depth_relative_to_terrain: float  # positive = above terrain (closer to camera)
+    color_mean: np.ndarray  # [R, G, B] float
+    confidence: float  # classifier confidence 0-1
 
 
 @dataclass
 class StructureResult:
     regions: list[StructureRegion]
-    edge_map: np.ndarray                # HxW uint8 Canny edges
-    boundary_map: np.ndarray            # HxW float32  depth boundary strength
-    label_map: np.ndarray               # HxW int8  per-pixel class index (-1=unclassified)
-    terrain_depth_level: float          # median depth of terrain/road pixels (reference level)
-    segmentation_quality: float         # 0-1 estimated quality
+    edge_map: np.ndarray  # HxW uint8 Canny edges
+    boundary_map: np.ndarray  # HxW float32  depth boundary strength
+    label_map: np.ndarray  # HxW int8  per-pixel class index (-1=unclassified)
+    terrain_depth_level: float  # median depth of terrain/road pixels (reference level)
+    segmentation_quality: float  # 0-1 estimated quality
     backend_used: str
     runtime_s: float
     num_regions: int
@@ -77,28 +78,42 @@ class StructureEngine:
         """
         t0 = time.perf_counter()
         backend = self.struct_cfg.get("segmentation_backend", "classical")
-        log.info("Running structural analysis | backend=%s | image=%dx%d",
-                 backend, image_rgb.shape[1], image_rgb.shape[0])
+        log.info(
+            "Running structural analysis | backend=%s | image=%dx%d",
+            backend,
+            image_rgb.shape[1],
+            image_rgb.shape[0],
+        )
 
         try:
             result = self._run_classical(image_rgb, depth_map)
         except Exception as exc:
-            log.error("Structure analysis failed: %s — returning empty result.", exc, exc_info=True)
+            log.error(
+                "Structure analysis failed: %s — returning empty result.",
+                exc,
+                exc_info=True,
+            )
             h, w = image_rgb.shape[:2]
             result = StructureResult(
-                regions=[], edge_map=np.zeros((h, w), dtype=np.uint8),
+                regions=[],
+                edge_map=np.zeros((h, w), dtype=np.uint8),
                 boundary_map=np.zeros((h, w), dtype=np.float32),
                 label_map=np.full((h, w), -1, dtype=np.int8),
                 terrain_depth_level=float(np.median(depth_map)),
-                segmentation_quality=0.0, backend_used="failed",
-                runtime_s=time.perf_counter() - t0, num_regions=0,
+                segmentation_quality=0.0,
+                backend_used="failed",
+                runtime_s=time.perf_counter() - t0,
+                num_regions=0,
                 warning=f"Structural analysis failed: {exc}",
             )
 
         log.info(
             "Structure analysis done | backend=%s | regions=%d | buildings=%d | quality=%.2f | %.2fs",
-            result.backend_used, result.num_regions, len(result.buildings),
-            result.segmentation_quality, result.runtime_s,
+            result.backend_used,
+            result.num_regions,
+            len(result.buildings),
+            result.segmentation_quality,
+            result.runtime_s,
         )
         return result
 
@@ -106,11 +121,14 @@ class StructureEngine:
     # Classical backend: Canny + SLIC + heuristic classifier
     # ─────────────────────────────────────────────────────────
 
-    def _run_classical(self, image_rgb: np.ndarray, depth_map: np.ndarray) -> StructureResult:
+    def _run_classical(
+        self, image_rgb: np.ndarray, depth_map: np.ndarray
+    ) -> StructureResult:
         import cv2
-        from skimage.segmentation import slic
-        from skimage.measure import label as cc_label, regionprops
         from scipy.ndimage import gaussian_filter
+        from skimage.measure import label as cc_label
+        from skimage.measure import regionprops
+        from skimage.segmentation import slic
 
         t0 = time.perf_counter()
         h, w = image_rgb.shape[:2]
@@ -123,7 +141,9 @@ class StructureEngine:
         edges = cv2.Canny(gray, lo, hi)
 
         # ── Depth boundary map ────────────────────────────────
-        d_norm = (depth_map - depth_map.min()) / max(depth_map.max() - depth_map.min(), 1e-6)
+        d_norm = (depth_map - depth_map.min()) / max(
+            depth_map.max() - depth_map.min(), 1e-6
+        )
         gx = cv2.Sobel(d_norm.astype(np.float32), cv2.CV_32F, 1, 0, ksize=3)
         gy = cv2.Sobel(d_norm.astype(np.float32), cv2.CV_32F, 0, 1, ksize=3)
         boundary_map = np.sqrt(gx**2 + gy**2).astype(np.float32)
@@ -133,8 +153,12 @@ class StructureEngine:
         compactness = cfg.get("slic_compactness", 10.0)
         try:
             segments = slic(
-                image_rgb, n_segments=n_seg, compactness=compactness,
-                sigma=1.0, start_label=0, channel_axis=-1,
+                image_rgb,
+                n_segments=n_seg,
+                compactness=compactness,
+                sigma=1.0,
+                start_label=0,
+                channel_axis=-1,
             )
         except Exception as exc:
             log.warning("SLIC failed (%s) — using grid segmentation fallback.", exc)
@@ -240,7 +264,8 @@ class StructureEngine:
                     centroid=(float(ys.mean()), float(xs.mean())),
                     depth_mean=float(d_vals.mean()),
                     depth_std=float(d_vals.std()),
-                    depth_relative_to_terrain=float(d_vals.mean()) - terrain_depth_level,
+                    depth_relative_to_terrain=float(d_vals.mean())
+                    - terrain_depth_level,
                     color_mean=image_rgb[obj_mask].mean(axis=0).astype(np.float32),
                     confidence=0.6,
                 )
@@ -274,7 +299,7 @@ class StructureEngine:
         idx = 0
         for i in range(side):
             for j in range(side):
-                out[rows[i]:rows[i+1], cols[j]:cols[j+1]] = idx
+                out[rows[i] : rows[i + 1], cols[j] : cols[j + 1]] = idx
                 idx += 1
         return out
 
@@ -283,8 +308,9 @@ class StructureEngine:
 # Utilities
 # ─────────────────────────────────────────────────────────────
 
+
 def _classify_superpixel(
-    color: np.ndarray,   # [R, G, B] float
+    color: np.ndarray,  # [R, G, B] float
     depth_vals: np.ndarray,
 ) -> tuple[str, float]:
     """
@@ -324,10 +350,12 @@ def _connected_components(binary_mask: np.ndarray) -> tuple[np.ndarray, int]:
     """Label connected components. Returns (label_array, n_components)."""
     try:
         import cv2
+
         mask_u8 = binary_mask.astype(np.uint8)
         n, labels = cv2.connectedComponents(mask_u8, connectivity=8)
         return labels, n - 1  # subtract background
     except Exception:
         from scipy.ndimage import label as sp_label
+
         labeled, n = sp_label(binary_mask)
         return labeled, n

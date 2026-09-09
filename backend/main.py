@@ -12,6 +12,7 @@ Results are stored in an in-memory dict (sufficient for hackathon).
 
 All CORS origins from config are allowed.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -21,19 +22,18 @@ import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
+from core.config_loader import config_version_hash, load_config
 from core.logger import get_logger
-from core.config_loader import load_config, config_version_hash
 
 log = get_logger("backend")
 
@@ -56,7 +56,7 @@ CORS_ORIGINS = cfg.get("backend", {}).get(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # dev mode — restrict in production
+    allow_origins=["*"],  # dev mode — restrict in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -73,6 +73,7 @@ JOBS_DIR.mkdir(parents=True, exist_ok=True)
 # ─────────────────────────────────────────────────────────────
 # Routes
 # ─────────────────────────────────────────────────────────────
+
 
 @app.get("/api/health")
 async def health():
@@ -179,6 +180,7 @@ async def list_jobs():
 # Background pipeline runner
 # ─────────────────────────────────────────────────────────────
 
+
 def _progress(job_id: str, stage: str, pct: int) -> None:
     if job_id in jobs:
         jobs[job_id]["stage"] = stage
@@ -196,24 +198,33 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
         _progress(job_id, "Loading input", 5)
 
         from core.input_manager import load_input
+
         input_data = load_input(input_path, cfg)
         _progress(job_id, "Depth inference", 15)
 
         from core.depth_engine import DepthEngine
+
         engine = DepthEngine(cfg)
-        depth_result = engine.estimate(input_data.image_rgb, input_data.input_hash, cfg_hash)
+        depth_result = engine.estimate(
+            input_data.image_rgb, input_data.input_hash, cfg_hash
+        )
         _progress(job_id, "Structure analysis", 35)
 
         from core.pipeline import run_pipeline
+
         pipeline_result = run_pipeline(input_data, depth_result, cfg)
         pr = pipeline_result
         _progress(job_id, "Uncertainty analysis", 55)
 
         from core.uncertainty import run_pdu
-        pdu_result = run_pdu(pr.candidates, pr.evidence_scores, pr.hcdc_result.corrected_depth, cfg)
+
+        pdu_result = run_pdu(
+            pr.candidates, pr.evidence_scores, pr.hcdc_result.corrected_depth, cfg
+        )
         _progress(job_id, "Exporting DSM", 65)
 
         from core.dsm_exporter import export_dsm
+
         dsm_result = export_dsm(
             pr.hcdc_result.corrected_depth,
             pr.terrain_result,
@@ -224,6 +235,7 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
         _progress(job_id, "Building mesh", 78)
 
         from core.mesh_builder import build_mesh
+
         mesh_result = build_mesh(
             dsm_result.dsm,
             input_data.image_rgb,
@@ -260,7 +272,9 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
             "structure": {
                 "num_regions": pr.structure_result.num_regions,
                 "num_buildings": len(pr.structure_result.buildings),
-                "segmentation_quality": round(pr.structure_result.segmentation_quality, 3),
+                "segmentation_quality": round(
+                    pr.structure_result.segmentation_quality, 3
+                ),
                 "backend": pr.structure_result.backend_used,
             },
             "terrain": {
@@ -283,7 +297,9 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
                     "height_value": round(es.height_value, 2),
                     "height_unit": es.height_unit,
                     "overall_score": round(es.overall_score, 4),
-                    "component_scores": {k: round(v, 4) for k, v in es.component_scores.items()},
+                    "component_scores": {
+                        k: round(v, 4) for k, v in es.component_scores.items()
+                    },
                     "active_evidence": es.active_evidence,
                     "weights": {k: round(v, 4) for k, v in es.weights.items()},
                 }
@@ -296,16 +312,28 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
                     "height_value": round(cand.height_value, 2),
                     "height_unit": cand.height_unit,
                     "status": (
-                        "SURVIVED" if cand.candidate_id in {v.candidate_id for v in sdrl.survivors.values()}
+                        "SURVIVED"
+                        if cand.candidate_id
+                        in {v.candidate_id for v in sdrl.survivors.values()}
                         else "REJECTED"
                     ),
                     "overall_score": round(
-                        next((e.overall_score for e in pr.evidence_scores if e.candidate_id == cand.candidate_id), 0),
+                        next(
+                            (
+                                e.overall_score
+                                for e in pr.evidence_scores
+                                if e.candidate_id == cand.candidate_id
+                            ),
+                            0,
+                        ),
                         4,
                     ),
                     "component_scores": next(
-                        ({k: round(v, 4) for k, v in e.component_scores.items()}
-                         for e in pr.evidence_scores if e.candidate_id == cand.candidate_id),
+                        (
+                            {k: round(v, 4) for k, v in e.component_scores.items()}
+                            for e in pr.evidence_scores
+                            if e.candidate_id == cand.candidate_id
+                        ),
                         {},
                     ),
                 }
@@ -375,13 +403,15 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
 
 def _save_outputs(pr, output_dir: Path) -> None:
     """Save standard visualization outputs to output_dir."""
-    import numpy as np
     import matplotlib
+    import numpy as np
+
     matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    from PIL import Image as PILImage
     import sys
     from pathlib import Path as P
+
+    import matplotlib.pyplot as plt
+    from PIL import Image as PILImage
 
     demo_path = _REPO_ROOT / "scripts" / "demo.py"
     # Import helpers from demo without running __main__
@@ -415,14 +445,23 @@ def _save_outputs(pr, output_dir: Path) -> None:
     PILImage.blend(pil_rgb, pil_dep, 0.5).save(output_dir / "initial_depth.png")
 
     # Structures
-    save_image(make_structure_overlay(image_rgb, pr.structure_result), output_dir / "structures.png")
+    save_image(
+        make_structure_overlay(image_rgb, pr.structure_result),
+        output_dir / "structures.png",
+    )
 
     # Corrected depth
     corr_nd = pr.hcdc_result.corrected_depth
     corr_min, corr_max = corr_nd.min(), corr_nd.max()
-    corr_norm = ((corr_nd - corr_min) / max(corr_max - corr_min, 1e-6)).astype(np.float32)
+    corr_norm = ((corr_nd - corr_min) / max(corr_max - corr_min, 1e-6)).astype(
+        np.float32
+    )
     save_image(colorize_depth(corr_norm), output_dir / "depth_corrected.png")
 
     # Charts
-    make_height_fingerprint_chart(pr.chf_result, pr.sdrl_result, output_dir / "height_fingerprint.png")
-    make_candidate_table_image(pr.sdrl_result, pr.evidence_scores, output_dir / "verification_table.png")
+    make_height_fingerprint_chart(
+        pr.chf_result, pr.sdrl_result, output_dir / "height_fingerprint.png"
+    )
+    make_candidate_table_image(
+        pr.sdrl_result, pr.evidence_scores, output_dir / "verification_table.png"
+    )

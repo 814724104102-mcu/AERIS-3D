@@ -9,6 +9,7 @@ Covers:
 - GeoRef is None for RGB images (never fabricated)
 - Synthetic GeoTIFF loading (generated in-memory)
 """
+
 from __future__ import annotations
 
 import os
@@ -26,7 +27,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from core.config_loader import load_config
-from core.input_manager import load_input, FileFormat
+from core.input_manager import FileFormat, load_input
 
 
 @pytest.fixture
@@ -66,6 +67,7 @@ def sample_large_jpg(tmp_path):
 # Gate 1 — Basic loading
 # ──────────────────────────────────────────────────────────────
 
+
 class TestJpegLoading:
     def test_returns_input_data(self, sample_jpg, cfg):
         result = load_input(sample_jpg, cfg)
@@ -91,7 +93,9 @@ class TestJpegLoading:
     def test_georef_none_for_jpeg(self, sample_jpg, cfg):
         """Critical: georef must NEVER be fabricated for RGB images."""
         result = load_input(sample_jpg, cfg)
-        assert result.georef is None, "georef must be None for plain JPEG — never fabricated"
+        assert (
+            result.georef is None
+        ), "georef must be None for plain JPEG — never fabricated"
 
     def test_input_hash_nonempty(self, sample_jpg, cfg):
         result = load_input(sample_jpg, cfg)
@@ -122,9 +126,9 @@ class TestResizing:
         max_size = cfg.get("input", {}).get("max_image_size", 1024)
         ph = result.preprocessing_meta.preprocessed_height
         pw = result.preprocessing_meta.preprocessed_width
-        assert max(ph, pw) <= max_size, (
-            f"Preprocessed size {pw}x{ph} exceeds max_size={max_size}"
-        )
+        assert (
+            max(ph, pw) <= max_size
+        ), f"Preprocessed size {pw}x{ph} exceeds max_size={max_size}"
 
     def test_small_image_not_upscaled(self, sample_jpg, cfg):
         """Images smaller than max_size should not be upscaled."""
@@ -138,6 +142,7 @@ class TestResizing:
 # ──────────────────────────────────────────────────────────────
 # Error cases
 # ──────────────────────────────────────────────────────────────
+
 
 class TestErrorHandling:
     def test_missing_file_raises(self, cfg):
@@ -162,6 +167,7 @@ class TestErrorHandling:
 # GeoTIFF (synthetic)
 # ──────────────────────────────────────────────────────────────
 
+
 class TestGeoTIFF:
     @pytest.fixture
     def sample_geotiff(self, tmp_path):
@@ -176,9 +182,11 @@ class TestGeoTIFF:
         data = np.random.randint(50, 200, (3, h, w), dtype=np.uint8)
 
         with rasterio.open(
-            p, "w",
+            p,
+            "w",
             driver="GTiff",
-            height=h, width=w,
+            height=h,
+            width=w,
             count=3,
             dtype=np.uint8,
             crs="EPSG:4326",

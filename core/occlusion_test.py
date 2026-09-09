@@ -11,6 +11,7 @@ Algorithm (image-space approximation):
    in the expected occlusion ordering?
 4. Return occlusion_score per candidate and a machine-readable visibility graph.
 """
+
 from __future__ import annotations
 
 import time
@@ -19,9 +20,9 @@ from typing import Optional
 
 import numpy as np
 
+from core.candidate_generator import CandidateGeometry
 from core.logger import get_logger
 from core.structure_engine import StructureResult
-from core.candidate_generator import CandidateGeometry
 
 log = get_logger("occlusion_test")
 
@@ -29,8 +30,10 @@ log = get_logger("occlusion_test")
 @dataclass
 class OcclusionResult:
     candidate_occlusion_scores: dict[str, float]  # candidate_id → score 0-1
-    visibility_graph: dict                         # simplified ordering graph
-    contradictions: dict[str, list[str]]           # candidate_id → list of contradiction descriptions
+    visibility_graph: dict  # simplified ordering graph
+    contradictions: dict[
+        str, list[str]
+    ]  # candidate_id → list of contradiction descriptions
     runtime_s: float
 
 
@@ -57,8 +60,11 @@ def run_occlusion_test(
     n_layers = int(oc_cfg.get("depth_layer_count", 5))
     contr_thresh = float(oc_cfg.get("contradiction_threshold", 0.3))
 
-    log.info("Running occlusion test | layers=%d | regions=%d",
-             n_layers, len(structure_result.regions))
+    log.info(
+        "Running occlusion test | layers=%d | regions=%d",
+        n_layers,
+        len(structure_result.regions),
+    )
 
     regions = structure_result.regions
     if not regions:
@@ -156,8 +162,9 @@ def run_occlusion_test(
         contradictions[cand.candidate_id] = contrs
 
     runtime_s = time.perf_counter() - t0
-    log.info("Occlusion test done | graph_edges=%d | %.3fs",
-             len(visibility_graph), runtime_s)
+    log.info(
+        "Occlusion test done | graph_edges=%d | %.3fs", len(visibility_graph), runtime_s
+    )
 
     return OcclusionResult(
         candidate_occlusion_scores=candidate_scores,

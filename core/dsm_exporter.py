@@ -16,6 +16,7 @@ SCIENTIFIC HONESTY:
   All exports carry scale_mode metadata.
   GeoTIFF is skipped (not fabricated) when no CRS is available.
 """
+
 from __future__ import annotations
 
 import json
@@ -34,9 +35,9 @@ log = get_logger("dsm_exporter")
 
 @dataclass
 class DSMExportResult:
-    dsm: np.ndarray             # HxW float32 surface model
-    rdsm: np.ndarray            # HxW float32 relative (height above terrain)
-    scale_mode: str             # RELATIVE | ANCHORED_METRIC
+    dsm: np.ndarray  # HxW float32 surface model
+    rdsm: np.ndarray  # HxW float32 relative (height above terrain)
+    scale_mode: str  # RELATIVE | ANCHORED_METRIC
     exported_files: list[str]
     stats: dict
     runtime_s: float
@@ -45,7 +46,7 @@ class DSMExportResult:
 def export_dsm(
     corrected_depth: np.ndarray,
     terrain_result: TerrainResult,
-    georef,                     # GeoRef or None
+    georef,  # GeoRef or None
     output_dir: Path,
     config: dict,
 ) -> DSMExportResult:
@@ -77,8 +78,13 @@ def export_dsm(
     scale_mode = terrain_result.scale_mode
     exported: list[str] = []
 
-    log.info("Exporting DSM/rDSM | scale=%s | png=%s npz=%s geotiff=%s",
-             scale_mode, export_png, export_npz, export_geotiff)
+    log.info(
+        "Exporting DSM/rDSM | scale=%s | png=%s npz=%s geotiff=%s",
+        scale_mode,
+        export_png,
+        export_npz,
+        export_geotiff,
+    )
 
     # ── Stats ──────────────────────────────────────────────────
     dsm_stats = {
@@ -126,7 +132,8 @@ def export_dsm(
             "warning": (
                 "All elevation values are RELATIVE — no metric anchor. "
                 "Do not use as absolute elevations."
-                if scale_mode == "RELATIVE" else None
+                if scale_mode == "RELATIVE"
+                else None
             ),
         }
         meta_path = output_dir / "dsm_metadata.json"
@@ -138,8 +145,10 @@ def export_dsm(
     # ── GeoTIFF export ─────────────────────────────────────────
     if export_geotiff:
         if georef is None:
-            log.warning("GeoTIFF export skipped — no CRS/georef available. "
-                        "Fabricating coordinates is not allowed.")
+            log.warning(
+                "GeoTIFF export skipped — no CRS/georef available. "
+                "Fabricating coordinates is not allowed."
+            )
         else:
             try:
                 _save_geotiff(dsm, rdsm, georef, output_dir)
@@ -162,6 +171,7 @@ def export_dsm(
 
 def _save_colorized(arr: np.ndarray, path: Path, colormap: str, label: str) -> None:
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from PIL import Image as PILImage
@@ -181,20 +191,24 @@ def _save_colorized(arr: np.ndarray, path: Path, colormap: str, label: str) -> N
 
 def _save_geotiff(dsm: np.ndarray, rdsm: np.ndarray, georef, output_dir: Path) -> None:
     import rasterio
-    from rasterio.transform import from_bounds
     from rasterio.crs import CRS
+    from rasterio.transform import from_bounds
 
     transform = from_bounds(
-        georef.bounds[0], georef.bounds[1],
-        georef.bounds[2], georef.bounds[3],
-        dsm.shape[1], dsm.shape[0],
+        georef.bounds[0],
+        georef.bounds[1],
+        georef.bounds[2],
+        georef.bounds[3],
+        dsm.shape[1],
+        dsm.shape[0],
     )
     crs = CRS.from_string(georef.crs)
 
     for arr, fname, desc in [(dsm, "dsm.tif", "DSM"), (rdsm, "rdsm.tif", "rDSM")]:
         out_path = output_dir / fname
         with rasterio.open(
-            out_path, "w",
+            out_path,
+            "w",
             driver="GTiff",
             height=arr.shape[0],
             width=arr.shape[1],

@@ -16,6 +16,7 @@ The GLB is served by the FastAPI backend to the Three.js frontend.
 Scale is RELATIVE — vertex Z coordinates are in depth units, not metres.
 The export metadata carries scale_mode warning.
 """
+
 from __future__ import annotations
 
 import time
@@ -77,7 +78,8 @@ def build_mesh(
         log.error("trimesh not installed — mesh export skipped.")
         return MeshResult(
             glb_path=output_dir / "mesh.glb",
-            vertex_count=0, face_count=0,
+            vertex_count=0,
+            face_count=0,
             scale_mode=scale_mode,
             vertical_exaggeration=v_exag,
             runtime_s=0.0,
@@ -88,6 +90,7 @@ def build_mesh(
 
     # ── 1. Resize DSM and image to mesh resolution ─────────────
     from PIL import Image as PILImage
+
     dsm_img = PILImage.fromarray(dsm)
     dsm_img = dsm_img.resize((resolution, resolution), PILImage.BILINEAR)
     dsm_small = np.array(dsm_img, dtype=np.float32)
@@ -99,7 +102,7 @@ def build_mesh(
     # ── 2. Normalize DSM to [0, 1] range ──────────────────────
     d_min, d_max = dsm_small.min(), dsm_small.max()
     d_range = max(d_max - d_min, 1e-6)
-    dsm_norm = (dsm_small - d_min) / d_range   # 0 = far, 1 = near/high
+    dsm_norm = (dsm_small - d_min) / d_range  # 0 = far, 1 = near/high
 
     # ── 3. Build vertex grid ───────────────────────────────────
     # X, Y in [-1, 1] (image plane)
@@ -124,10 +127,13 @@ def build_mesh(
     bl = idx[1:, :-1].ravel()
     br = idx[1:, 1:].ravel()
 
-    faces = np.concatenate([
-        np.stack([tl, tr, bl], axis=1),  # upper triangle
-        np.stack([tr, br, bl], axis=1),  # lower triangle
-    ], axis=0)  # (2*(r-1)^2, 3)
+    faces = np.concatenate(
+        [
+            np.stack([tl, tr, bl], axis=1),  # upper triangle
+            np.stack([tr, br, bl], axis=1),  # lower triangle
+        ],
+        axis=0,
+    )  # (2*(r-1)^2, 3)
 
     # ── 5. Build trimesh and export ────────────────────────────
     mesh = trimesh.Trimesh(
@@ -154,8 +160,12 @@ def build_mesh(
     glb_bytes = mesh.export(file_type="glb")
     with open(glb_path, "wb") as f:
         f.write(glb_bytes)
-    log.info("Saved mesh.glb: %d vertices, %d faces, %.1f KB",
-             n_verts, n_faces, len(glb_bytes) / 1024)
+    log.info(
+        "Saved mesh.glb: %d vertices, %d faces, %.1f KB",
+        n_verts,
+        n_faces,
+        len(glb_bytes) / 1024,
+    )
 
     # Optional OBJ export
     if export_obj:
@@ -166,7 +176,8 @@ def build_mesh(
     runtime_s = time.perf_counter() - t0
     warning = (
         "Mesh Z-axis is in RELATIVE depth units — not metric elevation."
-        if scale_mode == "RELATIVE" else None
+        if scale_mode == "RELATIVE"
+        else None
     )
     log.info("Mesh built | %d verts | %d faces | %.3fs", n_verts, n_faces, runtime_s)
 

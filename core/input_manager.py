@@ -8,6 +8,7 @@ Key rules:
 - GeoTIFF: preserves CRS, affine transform, bounds, pixel size.
 - All preprocessing is recorded in metadata for traceability.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -25,20 +26,21 @@ log = get_logger("input_manager")
 
 
 class FileFormat(str, Enum):
-    RGB_IMAGE = "RGB_IMAGE"      # standard JPG/PNG without georeferencing
-    GEOTIFF = "GEOTIFF"          # raster with CRS / affine / bounds metadata
+    RGB_IMAGE = "RGB_IMAGE"  # standard JPG/PNG without georeferencing
+    GEOTIFF = "GEOTIFF"  # raster with CRS / affine / bounds metadata
 
 
 @dataclass
 class GeoRef:
     """Georeferencing metadata, sourced directly from file — never fabricated."""
-    crs: str                          # e.g. "EPSG:4326"
-    affine_transform: list[float]     # 6-element Affine coefficients [a,b,c,d,e,f]
+
+    crs: str  # e.g. "EPSG:4326"
+    affine_transform: list[float]  # 6-element Affine coefficients [a,b,c,d,e,f]
     bounds_west: float
     bounds_south: float
     bounds_east: float
     bounds_north: float
-    pixel_size_x: float               # metres/px or degrees/px
+    pixel_size_x: float  # metres/px or degrees/px
     pixel_size_y: float
     num_bands: int
     nodata_value: Optional[float]
@@ -51,7 +53,7 @@ class PreprocessingMetadata:
     original_channels: int
     preprocessed_height: int
     preprocessed_width: int
-    resize_scale: float               # longest-edge scale factor applied
+    resize_scale: float  # longest-edge scale factor applied
     normalize_mean: list[float]
     normalize_std: list[float]
     processing_time_s: float
@@ -63,9 +65,10 @@ class InputData:
     Unified input representation for the AERIS-3D pipeline.
     All downstream modules receive this object — not raw files.
     """
+
     file_path: str
     file_format: FileFormat
-    input_hash: str                   # SHA256 of file bytes — used for caching
+    input_hash: str  # SHA256 of file bytes — used for caching
 
     # Original RGB image (HxWx3, uint8, values 0-255)
     image_rgb: np.ndarray
@@ -85,6 +88,7 @@ class InputData:
 # ──────────────────────────────────────────────────────────────
 # Public API
 # ──────────────────────────────────────────────────────────────
+
 
 def load_input(
     file_path: str | Path,
@@ -111,11 +115,14 @@ def load_input(
         raise FileNotFoundError(f"Input file not found: {path}")
 
     suffix = path.suffix.lower().lstrip(".")
-    supported = set(config.get("input", {}).get("supported_formats", ["jpg", "jpeg", "png", "tif", "tiff"]))
+    supported = set(
+        config.get("input", {}).get(
+            "supported_formats", ["jpg", "jpeg", "png", "tif", "tiff"]
+        )
+    )
     if suffix not in supported:
         raise ValueError(
-            f"Unsupported file format '.{suffix}'. "
-            f"Supported: {sorted(supported)}"
+            f"Unsupported file format '.{suffix}'. " f"Supported: {sorted(supported)}"
         )
 
     log.info("Loading input: %s (format: .%s)", path.name, suffix)
@@ -151,6 +158,7 @@ def load_input(
 # Internal helpers
 # ──────────────────────────────────────────────────────────────
 
+
 def _compute_file_hash(path: Path) -> str:
     """SHA256 of file — uses first 64 KB + total size for speed on large rasters."""
     hasher = hashlib.sha256()
@@ -183,7 +191,9 @@ def _resize_image(image: np.ndarray, max_size: int) -> tuple[np.ndarray, float]:
     return np.array(pil_img), scale
 
 
-def _normalize(image_uint8: np.ndarray, mean: list[float], std: list[float]) -> np.ndarray:
+def _normalize(
+    image_uint8: np.ndarray, mean: list[float], std: list[float]
+) -> np.ndarray:
     """Normalize uint8 RGB [0,255] → float32 using per-channel mean/std."""
     img_f32 = image_uint8.astype(np.float32) / 255.0
     m = np.array(mean, dtype=np.float32)
@@ -304,8 +314,12 @@ def _load_geotiff(
 
         # Affine transform: 6 coefficients
         affine = [
-            transform.a, transform.b, transform.c,
-            transform.d, transform.e, transform.f,
+            transform.a,
+            transform.b,
+            transform.c,
+            transform.d,
+            transform.e,
+            transform.f,
         ]
 
         georef = GeoRef(
@@ -322,8 +336,13 @@ def _load_geotiff(
         )
         log.info(
             "GeoTIFF georef | CRS=%s | bounds=(%.4f,%.4f,%.4f,%.4f) | px_size=(%.4f,%.4f)",
-            crs_str, bounds.left, bounds.bottom, bounds.right, bounds.top,
-            abs(transform.a), abs(transform.e),
+            crs_str,
+            bounds.left,
+            bounds.bottom,
+            bounds.right,
+            bounds.top,
+            abs(transform.a),
+            abs(transform.e),
         )
 
     except rasterio.errors.RasterioIOError as exc:

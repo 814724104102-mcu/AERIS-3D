@@ -35,11 +35,11 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from core.logger import get_logger
-from core.config_loader import load_config, config_version_hash
+from core.config_loader import config_version_hash, load_config
+from core.depth_engine import DepthEngine
 from core.hardware import get_hardware
 from core.input_manager import load_input
-from core.depth_engine import DepthEngine
+from core.logger import get_logger
 from core.pipeline import run_pipeline
 
 log = get_logger("demo")
@@ -50,8 +50,13 @@ def parse_args() -> argparse.Namespace:
         description="AERIS-3D Demo — Single-image 3D reconstruction",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--input", "-i", type=str, default=None,
-                        help="Input image (JPG/PNG/GeoTIFF). Auto-generates if omitted.")
+    parser.add_argument(
+        "--input",
+        "-i",
+        type=str,
+        default=None,
+        help="Input image (JPG/PNG/GeoTIFF). Auto-generates if omitted.",
+    )
     parser.add_argument("--config", "-c", type=str, default=None)
     parser.add_argument("--output-dir", "-o", type=str, default="data/outputs")
     parser.add_argument("--no-cache", action="store_true")
@@ -60,6 +65,7 @@ def parse_args() -> argparse.Namespace:
 
 def generate_synthetic_test_image(output_path: Path) -> Path:
     from PIL import Image as PILImage
+
     log.warning("No input image — generating synthetic test image: %s", output_path)
     h, w = 512, 512
     img = np.zeros((h, w, 3), dtype=np.uint8)
@@ -70,9 +76,9 @@ def generate_synthetic_test_image(output_path: Path) -> Path:
     for _ in range(12):
         bx, by = rng.integers(20, w - 80), rng.integers(20, h - 80)
         bw, bh = rng.integers(30, 90), rng.integers(30, 90)
-        img[by:by+bh, bx:bx+bw] = rng.integers(80, 200, size=3).tolist()
-    img[h//2 - 10:h//2 + 10, :] = [60, 60, 60]
-    img[:, w//2 - 8:w//2 + 8] = [60, 60, 60]
+        img[by : by + bh, bx : bx + bw] = rng.integers(80, 200, size=3).tolist()
+    img[h // 2 - 10 : h // 2 + 10, :] = [60, 60, 60]
+    img[:, w // 2 - 8 : w // 2 + 8] = [60, 60, 60]
     img[350:450, 50:180] = [40, 120, 50]
     output_path.parent.mkdir(parents=True, exist_ok=True)
     PILImage.fromarray(img).save(output_path)
@@ -81,8 +87,10 @@ def generate_synthetic_test_image(output_path: Path) -> Path:
 
 def colorize_depth(nd: np.ndarray) -> np.ndarray:
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+
     cmap = plt.get_cmap("inferno")
     rgba = cmap(nd)
     return (rgba[:, :, :3] * 255).astype(np.uint8)
@@ -90,6 +98,7 @@ def colorize_depth(nd: np.ndarray) -> np.ndarray:
 
 def save_image(arr: np.ndarray, path: Path) -> None:
     from PIL import Image as PILImage
+
     PILImage.fromarray(arr).save(path)
     log.info("Saved: %s", path)
 
@@ -97,14 +106,15 @@ def save_image(arr: np.ndarray, path: Path) -> None:
 def make_structure_overlay(image_rgb: np.ndarray, structure_result) -> np.ndarray:
     """Color-code detected structure classes on the image."""
     CLASS_COLORS = {
-        "building":   [255, 100,  50],
-        "road":       [150, 150, 150],
-        "vegetation": [ 50, 180,  80],
-        "water":      [ 50, 100, 220],
-        "terrain":    [160, 130,  80],
-        "unknown":    [100, 100, 100],
+        "building": [255, 100, 50],
+        "road": [150, 150, 150],
+        "vegetation": [50, 180, 80],
+        "water": [50, 100, 220],
+        "terrain": [160, 130, 80],
+        "unknown": [100, 100, 100],
     }
     from core.structure_engine import CLASSES
+
     overlay = image_rgb.copy().astype(np.float32)
     label_map = structure_result.label_map
     for lbl_idx, lbl_name in enumerate(CLASSES):
@@ -116,10 +126,10 @@ def make_structure_overlay(image_rgb: np.ndarray, structure_result) -> np.ndarra
     # Draw building bounding boxes
     for region in structure_result.buildings:
         y1, x1, y2, x2 = region.bbox
-        overlay[y1:y1+2, x1:x2] = [255, 200, 0]
-        overlay[y2-2:y2, x1:x2] = [255, 200, 0]
-        overlay[y1:y2, x1:x1+2] = [255, 200, 0]
-        overlay[y1:y2, x2-2:x2] = [255, 200, 0]
+        overlay[y1 : y1 + 2, x1:x2] = [255, 200, 0]
+        overlay[y2 - 2 : y2, x1:x2] = [255, 200, 0]
+        overlay[y1:y2, x1 : x1 + 2] = [255, 200, 0]
+        overlay[y1:y2, x2 - 2 : x2] = [255, 200, 0]
     return overlay.clip(0, 255).astype(np.uint8)
 
 
@@ -129,9 +139,10 @@ def make_height_fingerprint_chart(chf_result, sdrl_result, output_path: Path) ->
     Shows candidates, their scores, REJECTED/SURVIVED status.
     """
     import matplotlib
+
     matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
+    import matplotlib.pyplot as plt
 
     fingerprint = chf_result.height_fingerprint
     if not fingerprint:
@@ -141,7 +152,7 @@ def make_height_fingerprint_chart(chf_result, sdrl_result, output_path: Path) ->
     fig, axes = plt.subplots(1, n_objects, figsize=(7 * n_objects, 6), squeeze=False)
     fig.patch.set_facecolor("#1a1a2e")
 
-    survivors = sdrl_result.survivors   # {obj_id: EvidenceScore}
+    survivors = sdrl_result.survivors  # {obj_id: EvidenceScore}
 
     for col_idx, (obj_id, fp) in enumerate(fingerprint.items()):
         ax = axes[0][col_idx]
@@ -156,21 +167,37 @@ def make_height_fingerprint_chart(chf_result, sdrl_result, output_path: Path) ->
         survivor_h = survivor_es.height_value if survivor_es else None
 
         # Plot the fingerprint curve
-        ax.plot(heights, scores, "-", color="#4ecdc4", linewidth=2.0, alpha=0.7, zorder=2)
+        ax.plot(
+            heights, scores, "-", color="#4ecdc4", linewidth=2.0, alpha=0.7, zorder=2
+        )
 
         # Color each point: SURVIVED=green, REJECTED=red
         for h_val, sc in zip(heights, scores):
-            is_survivor = (survivor_h is not None and abs(h_val - survivor_h) < 0.1)
+            is_survivor = survivor_h is not None and abs(h_val - survivor_h) < 0.1
             color = "#2ecc71" if is_survivor else "#e74c3c"
             marker = "*" if is_survivor else "o"
             size = 180 if is_survivor else 60
-            ax.scatter([h_val], [sc], c=color, s=size, marker=marker,
-                       zorder=3, edgecolors="white", linewidths=0.5)
+            ax.scatter(
+                [h_val],
+                [sc],
+                c=color,
+                s=size,
+                marker=marker,
+                zorder=3,
+                edgecolors="white",
+                linewidths=0.5,
+            )
 
         # Rejection threshold line
         reject_thresh = 0.35
-        ax.axhline(y=reject_thresh, color="#f39c12", linestyle="--",
-                   linewidth=1.5, alpha=0.8, label=f"Rejection threshold ({reject_thresh})")
+        ax.axhline(
+            y=reject_thresh,
+            color="#f39c12",
+            linestyle="--",
+            linewidth=1.5,
+            alpha=0.8,
+            label=f"Rejection threshold ({reject_thresh})",
+        )
 
         # Annotate survivor
         if survivor_h is not None and survivor_es is not None:
@@ -178,15 +205,23 @@ def make_height_fingerprint_chart(chf_result, sdrl_result, output_path: Path) ->
                 f"SURVIVED\n{survivor_h:.1f} {unit[:3]}\nScore: {survivor_es.overall_score:.3f}",
                 xy=(survivor_h, survivor_es.overall_score),
                 xytext=(survivor_h + 2, survivor_es.overall_score + 0.05),
-                color="#2ecc71", fontsize=9, fontweight="bold",
+                color="#2ecc71",
+                fontsize=9,
+                fontweight="bold",
                 arrowprops=dict(arrowstyle="->", color="#2ecc71"),
-                bbox=dict(boxstyle="round,pad=0.3", facecolor="#0f3460", edgecolor="#2ecc71"),
+                bbox=dict(
+                    boxstyle="round,pad=0.3", facecolor="#0f3460", edgecolor="#2ecc71"
+                ),
             )
 
         ax.set_xlabel(f"Height ({unit})", color="white", fontsize=11)
         ax.set_ylabel("Consistency Score (EGSS)", color="white", fontsize=11)
-        ax.set_title(f"AERIS Verification — {obj_id}\nHeight Fingerprint",
-                     color="white", fontsize=13, fontweight="bold")
+        ax.set_title(
+            f"AERIS Verification — {obj_id}\nHeight Fingerprint",
+            color="white",
+            fontsize=13,
+            fontweight="bold",
+        )
         ax.set_ylim(-0.05, 1.10)
         ax.tick_params(colors="white")
         ax.spines["bottom"].set_color("#4ecdc4")
@@ -213,6 +248,7 @@ def make_candidate_table_image(sdrl_result, evidence_scores, output_path: Path) 
     BEST-SUPPORTED HEIGHT: 18.0  CONFIDENCE: ...
     """
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
@@ -227,8 +263,14 @@ def make_candidate_table_image(sdrl_result, evidence_scores, output_path: Path) 
     # Collect all candidates for this object
     obj_scores = [es for es in evidence_scores if es.object_id == first_obj_id]
     # Sort: survivors first, then rejected, then by score
-    survivors_set = {sdrl_result.survivors[first_obj_id].candidate_id} if first_obj_id in sdrl_result.survivors else set()
-    rejected_ids = {es.candidate_id for es in sdrl_result.rejected.get(first_obj_id, [])}
+    survivors_set = (
+        {sdrl_result.survivors[first_obj_id].candidate_id}
+        if first_obj_id in sdrl_result.survivors
+        else set()
+    )
+    rejected_ids = {
+        es.candidate_id for es in sdrl_result.rejected.get(first_obj_id, [])
+    }
 
     rows = []
     for es in sorted(obj_scores, key=lambda x: x.overall_score, reverse=True):
@@ -238,7 +280,15 @@ def make_candidate_table_image(sdrl_result, evidence_scores, output_path: Path) 
         else:
             status = "✗ REJECTED"
             color = "#e74c3c"
-        rows.append((es.candidate_id, f"{es.height_value:.1f}", f"{es.overall_score:.3f}", status, color))
+        rows.append(
+            (
+                es.candidate_id,
+                f"{es.height_value:.1f}",
+                f"{es.overall_score:.3f}",
+                status,
+                color,
+            )
+        )
 
     # Limit to 8 rows for readability
     rows = rows[:8]
@@ -252,12 +302,29 @@ def make_candidate_table_image(sdrl_result, evidence_scores, output_path: Path) 
     unit = survivor_es.height_unit if survivor_es else "RELATIVE"
 
     # Title
-    ax.text(0.5, 0.97, "AERIS VERIFICATION", transform=ax.transAxes,
-            fontsize=16, fontweight="bold", color="#4ecdc4",
-            ha="center", va="top", fontfamily="monospace")
-    ax.text(0.5, 0.91, f"Object: {first_obj_id}  |  Height Units: {unit}",
-            transform=ax.transAxes, fontsize=10, color="#aaaaaa",
-            ha="center", va="top", fontfamily="monospace")
+    ax.text(
+        0.5,
+        0.97,
+        "AERIS VERIFICATION",
+        transform=ax.transAxes,
+        fontsize=16,
+        fontweight="bold",
+        color="#4ecdc4",
+        ha="center",
+        va="top",
+        fontfamily="monospace",
+    )
+    ax.text(
+        0.5,
+        0.91,
+        f"Object: {first_obj_id}  |  Height Units: {unit}",
+        transform=ax.transAxes,
+        fontsize=10,
+        color="#aaaaaa",
+        ha="center",
+        va="top",
+        fontfamily="monospace",
+    )
 
     # Header
     headers = ["Candidate", "Height", "Score", "Status"]
@@ -265,40 +332,107 @@ def make_candidate_table_image(sdrl_result, evidence_scores, output_path: Path) 
     header_y = 0.83
 
     for col_x_pos, header in zip(col_x, headers):
-        ax.text(col_x_pos, header_y, header, transform=ax.transAxes,
-                fontsize=11, color="#f39c12", fontweight="bold",
-                va="top", fontfamily="monospace")
+        ax.text(
+            col_x_pos,
+            header_y,
+            header,
+            transform=ax.transAxes,
+            fontsize=11,
+            color="#f39c12",
+            fontweight="bold",
+            va="top",
+            fontfamily="monospace",
+        )
 
     # Separator
-    ax.plot([0.02, 0.98], [0.80, 0.80], color="#4ecdc4", linewidth=1.0,
-            transform=ax.transAxes, clip_on=False)
+    ax.plot(
+        [0.02, 0.98],
+        [0.80, 0.80],
+        color="#4ecdc4",
+        linewidth=1.0,
+        transform=ax.transAxes,
+        clip_on=False,
+    )
 
     # Rows
     row_h = 0.085
     for i, (cid, h_str, sc_str, stat, col) in enumerate(rows):
         y_pos = 0.78 - i * row_h
-        ax.text(col_x[0], y_pos, cid, transform=ax.transAxes,
-                fontsize=10, color="white", va="top", fontfamily="monospace")
-        ax.text(col_x[1], y_pos, h_str, transform=ax.transAxes,
-                fontsize=10, color="white", va="top", fontfamily="monospace")
-        ax.text(col_x[2], y_pos, sc_str, transform=ax.transAxes,
-                fontsize=10, color="white", va="top", fontfamily="monospace")
-        ax.text(col_x[3], y_pos, stat, transform=ax.transAxes,
-                fontsize=10, color=col, va="top", fontweight="bold",
-                fontfamily="monospace")
+        ax.text(
+            col_x[0],
+            y_pos,
+            cid,
+            transform=ax.transAxes,
+            fontsize=10,
+            color="white",
+            va="top",
+            fontfamily="monospace",
+        )
+        ax.text(
+            col_x[1],
+            y_pos,
+            h_str,
+            transform=ax.transAxes,
+            fontsize=10,
+            color="white",
+            va="top",
+            fontfamily="monospace",
+        )
+        ax.text(
+            col_x[2],
+            y_pos,
+            sc_str,
+            transform=ax.transAxes,
+            fontsize=10,
+            color="white",
+            va="top",
+            fontfamily="monospace",
+        )
+        ax.text(
+            col_x[3],
+            y_pos,
+            stat,
+            transform=ax.transAxes,
+            fontsize=10,
+            color=col,
+            va="top",
+            fontweight="bold",
+            fontfamily="monospace",
+        )
 
     # Footer: best-supported
     if survivor_es:
-        ax.plot([0.02, 0.98], [0.18, 0.18], color="#4ecdc4", linewidth=1.0,
-                transform=ax.transAxes, clip_on=False)
-        ax.text(0.05, 0.14, f"BEST-SUPPORTED HEIGHT:  {survivor_es.height_value:.1f}  ({unit})",
-                transform=ax.transAxes, fontsize=12, color="#2ecc71",
-                fontweight="bold", va="top", fontfamily="monospace")
-        ax.text(0.05, 0.07, f"EGSS score: {survivor_es.overall_score:.4f}  |  "
-                f"Scale: {unit}  |  "
-                f"⚠ RELATIVE ESTIMATE — not ground truth",
-                transform=ax.transAxes, fontsize=9, color="#aaaaaa",
-                va="top", fontfamily="monospace")
+        ax.plot(
+            [0.02, 0.98],
+            [0.18, 0.18],
+            color="#4ecdc4",
+            linewidth=1.0,
+            transform=ax.transAxes,
+            clip_on=False,
+        )
+        ax.text(
+            0.05,
+            0.14,
+            f"BEST-SUPPORTED HEIGHT:  {survivor_es.height_value:.1f}  ({unit})",
+            transform=ax.transAxes,
+            fontsize=12,
+            color="#2ecc71",
+            fontweight="bold",
+            va="top",
+            fontfamily="monospace",
+        )
+        ax.text(
+            0.05,
+            0.07,
+            f"EGSS score: {survivor_es.overall_score:.4f}  |  "
+            f"Scale: {unit}  |  "
+            f"⚠ RELATIVE ESTIMATE — not ground truth",
+            transform=ax.transAxes,
+            fontsize=9,
+            color="#aaaaaa",
+            va="top",
+            fontfamily="monospace",
+        )
 
     plt.tight_layout(pad=1.5)
     plt.savefig(output_path, dpi=120, bbox_inches="tight", facecolor="#1a1a2e")
@@ -324,7 +458,9 @@ def run_demo(args: argparse.Namespace) -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     hw = get_hardware()
-    log.info("Hardware: device=%s (%s) CPUs=%d", hw.device, hw.device_name, hw.cpu_count)
+    log.info(
+        "Hardware: device=%s (%s) CPUs=%d", hw.device, hw.device_name, hw.cpu_count
+    )
 
     # ── Resolve input ─────────────────────────────────────────
     if args.input:
@@ -333,7 +469,9 @@ def run_demo(args: argparse.Namespace) -> int:
             log.error("Input not found: %s", input_path)
             return 1
     else:
-        input_path = generate_synthetic_test_image(Path("data/input/synthetic_test.jpg"))
+        input_path = generate_synthetic_test_image(
+            Path("data/input/synthetic_test.jpg")
+        )
 
     # ── Gate 1: Load input ────────────────────────────────────
     log.info("=== GATE 1: Loading input ===")
@@ -344,6 +482,7 @@ def run_demo(args: argparse.Namespace) -> int:
         return 1
 
     from PIL import Image as PILImage
+
     pil_prev = PILImage.fromarray(input_data.image_rgb)
     if max(pil_prev.size) > 1024:
         pil_prev.thumbnail((1024, 1024), PILImage.LANCZOS)
@@ -354,7 +493,9 @@ def run_demo(args: argparse.Namespace) -> int:
     log.info("=== GATE 2: Depth estimation ===")
     try:
         engine = DepthEngine(cfg)
-        depth_result = engine.estimate(input_data.image_rgb, input_data.input_hash, cfg_hash)
+        depth_result = engine.estimate(
+            input_data.image_rgb, input_data.input_hash, cfg_hash
+        )
     except Exception as exc:
         log.error("Depth failed: %s", exc, exc_info=True)
         return 1
@@ -363,16 +504,19 @@ def run_demo(args: argparse.Namespace) -> int:
     save_image(colorize_depth(nd), output_dir / "depth.png")
     # Overlay
     from PIL import Image as PILImage
+
     pil_rgb = PILImage.fromarray(input_data.image_rgb)
     pil_dep = PILImage.fromarray(colorize_depth(nd))
     pil_dep = pil_dep.resize(pil_rgb.size, PILImage.BILINEAR)
     blended = PILImage.blend(pil_rgb, pil_dep, 0.5)
     blended.save(output_dir / "initial_depth.png")
-    log.info("Gate 2 PASSED | model=%s device=%s cache=%s runtime=%.2fs",
-             depth_result.depth_metadata.model_name,
-             depth_result.depth_metadata.device,
-             depth_result.depth_metadata.cache_hit,
-             depth_result.depth_metadata.runtime_s)
+    log.info(
+        "Gate 2 PASSED | model=%s device=%s cache=%s runtime=%.2fs",
+        depth_result.depth_metadata.model_name,
+        depth_result.depth_metadata.device,
+        depth_result.depth_metadata.cache_hit,
+        depth_result.depth_metadata.runtime_s,
+    )
 
     # ── Gates 3–6: Full AERIS pipeline ───────────────────────
     log.info("=== GATES 3-6: AERIS Pipeline (Phases 3-12) ===")
@@ -388,9 +532,15 @@ def run_demo(args: argparse.Namespace) -> int:
 
     # ── Gate 3: Structures ────────────────────────────────────
     if sr.num_regions == 0:
-        log.warning("Gate 3: No structures detected — check segmentation or input image.")
+        log.warning(
+            "Gate 3: No structures detected — check segmentation or input image."
+        )
     else:
-        log.info("Gate 3 PASSED | %d regions (%d buildings)", sr.num_regions, len(sr.buildings))
+        log.info(
+            "Gate 3 PASSED | %d regions (%d buildings)",
+            sr.num_regions,
+            len(sr.buildings),
+        )
 
     struct_overlay = make_structure_overlay(input_data.image_rgb, sr)
     save_image(struct_overlay, output_dir / "structures.png")
@@ -402,7 +552,9 @@ def run_demo(args: argparse.Namespace) -> int:
         corr_norm = (corr_nd - corr_min) / (corr_max - corr_min)
     else:
         corr_norm = corr_nd
-    save_image(colorize_depth(corr_norm.astype(np.float32)), output_dir / "depth_corrected.png")
+    save_image(
+        colorize_depth(corr_norm.astype(np.float32)), output_dir / "depth_corrected.png"
+    )
 
     # ── Gate 4: Candidates ────────────────────────────────────
     if not pr.candidates:
@@ -421,30 +573,37 @@ def run_demo(args: argparse.Namespace) -> int:
         log.warning("Gate 6: No survivors found.")
         gate6_pass = False
     elif pr.n_rejected == 0:
-        log.warning("Gate 6: No candidates were rejected — increase candidate count or check scoring.")
+        log.warning(
+            "Gate 6: No candidates were rejected — increase candidate count or check scoring."
+        )
         gate6_pass = pr.n_survived > 0
     else:
-        log.info("Gate 6 PASSED | %d survived | %d rejected", pr.n_survived, pr.n_rejected)
+        log.info(
+            "Gate 6 PASSED | %d survived | %d rejected", pr.n_survived, pr.n_rejected
+        )
         gate6_pass = True
 
     # ── Produce visualizations ─────────────────────────────────
-    make_height_fingerprint_chart(pr.chf_result, sdrl, output_dir / "height_fingerprint.png")
-    make_candidate_table_image(sdrl, pr.evidence_scores, output_dir / "verification_table.png")
+    make_height_fingerprint_chart(
+        pr.chf_result, sdrl, output_dir / "height_fingerprint.png"
+    )
+    make_candidate_table_image(
+        sdrl, pr.evidence_scores, output_dir / "verification_table.png"
+    )
 
     # ── Write candidates.json ─────────────────────────────────
     candidates_data = []
     es_lookup = {es.candidate_id: es for es in pr.evidence_scores}
     sdrl_survivors_ids = {v.candidate_id for v in sdrl.survivors.values()}
     sdrl_rejected_ids = {
-        es.candidate_id
-        for lst in sdrl.rejected.values()
-        for es in lst
+        es.candidate_id for lst in sdrl.rejected.values() for es in lst
     }
 
     for cand in pr.candidates:
         es = es_lookup.get(cand.candidate_id)
         status = (
-            "SURVIVED" if cand.candidate_id in sdrl_survivors_ids
+            "SURVIVED"
+            if cand.candidate_id in sdrl_survivors_ids
             else "REJECTED"  # all non-survivors are REJECTED (didn't make it through SDRL)
         )
         row = {
@@ -455,7 +614,9 @@ def run_demo(args: argparse.Namespace) -> int:
             "terrain_baseline": cand.terrain_baseline,
             "status": status,
             "overall_score": round(es.overall_score, 4) if es else None,
-            "component_scores": {k: round(v, 4) for k, v in es.component_scores.items()} if es else {},
+            "component_scores": (
+                {k: round(v, 4) for k, v in es.component_scores.items()} if es else {}
+            ),
         }
         candidates_data.append(row)
 
@@ -469,8 +630,13 @@ def run_demo(args: argparse.Namespace) -> int:
         "aeris3d_version": "0.2.0",
         "pipeline_phase": "Phase0-12_AERIS_Core",
         "gates_passed": (
-            ["Gate1_Input", "Gate2_Depth", "Gate3_Structures",
-             "Gate4_Candidates", "Gate5_Scores"]
+            [
+                "Gate1_Input",
+                "Gate2_Depth",
+                "Gate3_Structures",
+                "Gate4_Candidates",
+                "Gate5_Scores",
+            ]
             + (["Gate6_Rejection"] if gate6_pass else [])
         ),
         "input": {
@@ -514,7 +680,9 @@ def run_demo(args: argparse.Namespace) -> int:
                 "height_value": es.height_value,
                 "height_unit": es.height_unit,
                 "overall_score": round(es.overall_score, 4),
-                "component_scores": {k: round(v, 4) for k, v in es.component_scores.items()},
+                "component_scores": {
+                    k: round(v, 4) for k, v in es.component_scores.items()
+                },
                 "active_evidence": es.active_evidence,
             }
             for obj_id, es in sdrl.survivors.items()
@@ -533,10 +701,16 @@ def run_demo(args: argparse.Namespace) -> int:
     print("AERIS-3D Demo — Phase 0-12 Complete")
     print("=" * 65)
     print(f"  Input:    {input_path}")
-    print(f"  Georef:   {'YES — ' + (input_data.georef.crs if input_data.georef else '') if input_data.georef else 'NO'}")
-    print(f"  Model:    {depth_result.depth_metadata.model_name} on {depth_result.depth_metadata.device}")
+    print(
+        f"  Georef:   {'YES — ' + (input_data.georef.crs if input_data.georef else '') if input_data.georef else 'NO'}"
+    )
+    print(
+        f"  Model:    {depth_result.depth_metadata.model_name} on {depth_result.depth_metadata.device}"
+    )
     print(f"  Regions:  {sr.num_regions} total | {len(sr.buildings)} buildings")
-    print(f"  Candidates: {pr.n_candidates} generated | {pr.n_survived} survived | {pr.n_rejected} rejected")
+    print(
+        f"  Candidates: {pr.n_candidates} generated | {pr.n_survived} survived | {pr.n_rejected} rejected"
+    )
     print()
     print("  AERIS VERIFICATION")
     print(f"  {'Candidate':<12} {'Height':>8}  {'Score':>8}  {'Status'}")
@@ -545,31 +719,52 @@ def run_demo(args: argparse.Namespace) -> int:
     if first_obj:
         obj_scores = sorted(
             [es for es in pr.evidence_scores if es.object_id == first_obj],
-            key=lambda x: x.overall_score, reverse=True
+            key=lambda x: x.overall_score,
+            reverse=True,
         )[:8]
         for es in obj_scores:
-            status = "✓ SURVIVED" if es.candidate_id in sdrl_survivors_ids else "✗ REJECTED"
-            print(f"  {es.candidate_id:<12} {es.height_value:>7.1f}  {es.overall_score:>8.4f}  {status}")
+            status = (
+                "✓ SURVIVED" if es.candidate_id in sdrl_survivors_ids else "✗ REJECTED"
+            )
+            print(
+                f"  {es.candidate_id:<12} {es.height_value:>7.1f}  {es.overall_score:>8.4f}  {status}"
+            )
     print()
     for obj_id, survivor in sdrl.survivors.items():
-        print(f"  BEST-SUPPORTED [{obj_id}]: height={survivor.height_value:.1f} "
-              f"({survivor.height_unit}) score={survivor.overall_score:.4f}")
+        print(
+            f"  BEST-SUPPORTED [{obj_id}]: height={survivor.height_value:.1f} "
+            f"({survivor.height_unit}) score={survivor.overall_score:.4f}"
+        )
         print(f"  ⚠  RELATIVE ESTIMATE — not ground truth")
     print()
-    print(f"  Shadow: available={pr.shadow_result.shadow_available} "
-          f"reliable={pr.shadow_result.shadow_reliable} "
-          f"weight={pr.shadow_result.effective_weight:.2f}")
+    print(
+        f"  Shadow: available={pr.shadow_result.shadow_available} "
+        f"reliable={pr.shadow_result.shadow_reliable} "
+        f"weight={pr.shadow_result.effective_weight:.2f}"
+    )
     print(f"  Terrain: {pr.terrain_result.scale_mode}")
     print(f"  Runtime: {total_runtime:.2f}s total")
     print()
     print("  Outputs:")
-    for name in ["input_preview.png", "depth.png", "structures.png",
-                 "depth_corrected.png", "height_fingerprint.png",
-                 "verification_table.png", "candidates.json", "results.json"]:
+    for name in [
+        "input_preview.png",
+        "depth.png",
+        "structures.png",
+        "depth_corrected.png",
+        "height_fingerprint.png",
+        "verification_table.png",
+        "candidates.json",
+        "results.json",
+    ]:
         print(f"    - {name}")
     print("=" * 65)
-    all_gates = ["Gate1_Input", "Gate2_Depth", "Gate3_Structures",
-                 "Gate4_Candidates", "Gate5_Scores"]
+    all_gates = [
+        "Gate1_Input",
+        "Gate2_Depth",
+        "Gate3_Structures",
+        "Gate4_Candidates",
+        "Gate5_Scores",
+    ]
     if gate6_pass:
         all_gates.append("Gate6_Rejection")
     print("  " + "  ".join(f"{g.split('_')[0]} ✓" for g in all_gates))

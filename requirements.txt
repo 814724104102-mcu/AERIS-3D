@@ -1,0 +1,54 @@
+# ============================================================
+# AERIS-3D Requirements
+# Active Environmental Reasoning & Inverse Simulation for 3D
+# ============================================================
+
+# ── Core ─────────────────────────────────────────────────────
+numpy>=1.24.0
+scipy>=1.10.0
+
+# ── Image I/O ────────────────────────────────────────────────
+Pillow>=10.0.0
+
+# ── Geospatial (GeoTIFF, CRS, DEM) ───────────────────────────
+rasterio>=1.3.0
+
+# ── Configuration ────────────────────────────────────────────
+PyYAML>=6.0
+
+# ── Computer Vision ──────────────────────────────────────────
+opencv-python-headless>=4.8.0
+scikit-image>=0.21.0
+scikit-learn>=1.3.0
+
+# ── Deep Learning (Depth Anything V2, MiDaS) ─────────────────
+# For macOS Apple Silicon: pip install torch torchvision
+# For Linux CUDA: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+torch>=2.1.0
+torchvision>=0.16.0
+transformers>=4.36.0    # Depth Anything V2 via HuggingFace
+timm>=0.9.0             # required by many ViT-based depth models
+
+# ── 3D Mesh Generation ────────────────────────────────────────
+trimesh>=4.0.0
+pyglet<2                # trimesh viewer dependency (optional)
+
+# ── Backend API ───────────────────────────────────────────────
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6  # FastAPI file upload
+
+# ── Data Validation ───────────────────────────────────────────
+pydantic>=2.4.0
+pydantic-settings>=2.0.0
+
+# ── Visualization ─────────────────────────────────────────────
+matplotlib>=3.7.0
+
+# ── Testing ───────────────────────────────────────────────────
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# ── Optional: performance ─────────────────────────────────────
+# numba>=0.58.0         # JIT compilation for hot loops (install manually if needed)
+# open3d>=0.17.0        # alternative mesh ops (may conflict on some platforms)

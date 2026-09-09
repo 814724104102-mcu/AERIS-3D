@@ -1,0 +1,166 @@
+# ============================================================
+# AERIS-3D — Default Configuration
+# All tunable parameters live here. Override without code changes.
+# ============================================================
+
+# ── Input / Preprocessing ────────────────────────────────────
+input:
+  max_image_size: 1024          # longest edge; image is resized preserving aspect ratio
+  supported_formats: [jpg, jpeg, png, tif, tiff]
+  normalize_mean: [0.485, 0.456, 0.406]   # ImageNet mean (for ViT-based models)
+  normalize_std: [0.229, 0.224, 0.225]    # ImageNet std
+
+# ── Depth Engine ─────────────────────────────────────────────
+depth:
+  # Backbone options: "depth_anything_v2_small" | "depth_anything_v2_base"
+  #                   | "depth_anything_v2_large" | "midas_dpt" | "gradient_stub"
+  model: "depth_anything_v2_small"
+  # HuggingFace hub repo for Depth Anything V2
+  hf_repo_small: "depth-anything/Depth-Anything-V2-Small-hf"
+  hf_repo_base:  "depth-anything/Depth-Anything-V2-Base-hf"
+  hf_repo_large: "depth-anything/Depth-Anything-V2-Large-hf"
+  # MiDaS fallback
+  midas_model_type: "DPT_Large"
+  # Output resolution (null = match input after preprocessing)
+  output_size: null
+  # Cache depth maps to disk (keyed on input_hash + model + config_version)
+  cache_enabled: true
+  cache_dir: "data/cache"
+  # Mixed precision inference (float16 on GPU/MPS, float32 on CPU)
+  use_mixed_precision: true
+  runtime_limit_seconds: 120
+
+# ── Structure Engine (Phase 3) ───────────────────────────────
+structure:
+  # "sam2" | "classical"  (classical = Canny + SLIC + heuristics)
+  segmentation_backend: "classical"
+  canny_low_threshold: 50
+  canny_high_threshold: 150
+  slic_n_segments: 200
+  slic_compactness: 10.0
+  min_region_area_px: 100       # ignore regions smaller than this
+  classes: [building, road, vegetation, water, terrain, unknown]
+  cache_enabled: true
+
+# ── HCDC (Phase 4) ───────────────────────────────────────────
+hcdc:
+  edge_aware_sigma: 2.0
+  gradient_threshold: 0.15      # flag depth pixels whose gradient >> image gradient
+  local_consistency_radius: 5   # px
+  correction_strength: 0.4      # 0=no correction, 1=full correction
+
+# ── Candidate Generator (Phase 5) ────────────────────────────
+candidate_generator:
+  min_height_m: 3.0             # meters (relative, not metric unless anchored)
+  max_height_m: 60.0
+  step_m: 3.0                   # coarse step for initial sweep
+  top_k: 5                      # top-K candidates taken into detailed verification
+  adaptive_range: true          # narrow range around depth-suggested height
+
+# ── CHF / ISCL (Phases 6-7) ──────────────────────────────────
+counterfactual:
+  edge_overlap_weight: 0.40
+  depth_agreement_weight: 0.30
+  segmentation_boundary_weight: 0.30
+  projection_resolution: 256    # reduced res for speed during candidate sweep
+  max_candidates_parallel: 8
+
+# ── Shadow Testing (Phase 8) ─────────────────────────────────
+shadow:
+  shadow_threshold_dark: 0.25   # pixels below this (normalized) treated as shadow
+  min_shadow_area_px: 200
+  reliability_min_area_fraction: 0.01  # need >= 1% shadow coverage to be reliable
+  weight_when_unreliable: 0.0
+
+# ── Occlusion Testing (Phase 9) ──────────────────────────────
+occlusion:
+  depth_layer_count: 5          # number of depth layers for visibility graph
+  contradiction_threshold: 0.3
+
+# ── Terrain Solver (Phase 10) ────────────────────────────────
+terrain:
+  # Reference DEM sources tried in order: geotiff_native | srtm | copernicus | aster
+  # If none available, output is RELATIVE only.
+  dem_sources: [geotiff_native]
+  relative_label: "RELATIVE"
+  anchored_label: "ANCHORED_METRIC"
+
+# ── EGSS Scoring (Phase 11) ──────────────────────────────────
+scoring:
+  # Base weights — evidence-adaptive: unreliable evidence → weight → 0
+  weights:
+    depth_agreement: 0.25
+    edge_overlap: 0.25
+    segmentation_boundary: 0.15
+    shadow: 0.10
+    occlusion: 0.10
+    terrain: 0.10
+    structural_plausibility: 0.05
+  rejection_threshold: 0.35     # candidates scoring below this are REJECTED
+
+# ── SDRL (Phase 12) ──────────────────────────────────────────
+self_disproof:
+  max_iterations: 5
+  convergence_delta: 0.02       # stop when best score changes < this between iterations
+  min_survivors: 1
+
+# ── Uncertainty (Phase 13) ───────────────────────────────────
+uncertainty:
+  perturbation_iterations: 10
+  height_perturbation_fraction: 0.05   # ±5% of candidate height
+  camera_angle_perturbation_deg: 2.0
+  terrain_perturbation_fraction: 0.05
+  segmentation_noise_sigma: 0.05
+
+# ── DSM / rDSM (Phase 14) ────────────────────────────────────
+dsm:
+  output_resolution: 512        # px (square)
+  export_geotiff: true          # only when CRS is available
+  export_npz: true
+  export_png: true
+  export_json_metadata: true
+  colormap: "terrain"
+
+# ── Mesh (Phase 15) ──────────────────────────────────────────
+mesh:
+  resolution: 256               # grid size before decimation
+  decimation_face_count: 50000  # target faces after simplification
+  export_glb: true
+  export_obj: false
+  vertical_exaggeration: 1.5    # subtle exaggeration for 3D viewer clarity
+
+# ── Flood Simulation (Phase 16) ──────────────────────────────
+flood:
+  levels_m: [1.0, 2.0, 3.0]    # hypothetical inundation depths
+  # UI MUST display: "SCENARIO SIMULATION — NOT A FLOOD FORECAST"
+
+# ── Backend (Phase 17) ───────────────────────────────────────
+backend:
+  host: "0.0.0.0"
+  port: 8000
+  cors_origins: ["http://localhost:5173", "http://127.0.0.1:5173"]
+  max_upload_size_mb: 100
+
+# ── Baseline Modes (Phase 23) ────────────────────────────────
+# A: monocular depth only
+# B: depth + geodetic anchoring
+# C: depth + counterfactual verification
+# D: full AERIS-3D
+baseline_mode: "D"
+
+# ── Observability (Phase 26) ─────────────────────────────────
+logging:
+  level: "INFO"                 # DEBUG | INFO | WARNING | ERROR
+  log_dir: "data/logs"
+  log_to_file: true
+
+# ── Runtime Limits ───────────────────────────────────────────
+runtime:
+  total_pipeline_limit_seconds: 300
+  depth_limit_seconds: 120
+  structure_limit_seconds: 60
+  candidate_limit_seconds: 60
+  verification_limit_seconds: 90
+
+# ── Internal versioning (cache key component) ─────────────────
+config_version: "0.1.0"

@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env
+
+# Data (large files, model weights, user data)
+data/cache/
+data/outputs/
+data/processed/
+data/logs/
+*.npz
+*.tif
+*.tiff
+!data/input/.gitkeep
+
+# Model weights
+*.pth
+*.pt
+*.bin
+*.safetensors
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Docker
+*.log

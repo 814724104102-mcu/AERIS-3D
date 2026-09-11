@@ -134,14 +134,23 @@ function HeightFingerprintChart({ fingerprint, survivors }) {
 function VerificationTable({ candidatesTable, survivors }) {
   if (!candidatesTable || candidatesTable.length === 0) return null;
 
+  const survivorEntries = Object.entries(survivors || {});
   const survivorIds = new Set(
     Object.values(survivors || {}).map(s => s.candidate_id)
   );
 
-  // Show first object's candidates; max 10 rows
-  const firstObjId = candidatesTable[0]?.object_id;
+  // Use the first survivor's object_id to drive the table (matches hero card)
+  const heroObjId = survivorEntries.length > 0 ? survivorEntries[0][0] : null;
+  const firstObjId = heroObjId || candidatesTable[0]?.object_id;
+
+  // Sort: survivors first, then by score descending; show max 10 rows
   const rows = candidatesTable
     .filter(c => c.object_id === firstObjId)
+    .sort((a, b) => {
+      const aS = survivorIds.has(a.candidate_id) ? 1 : 0;
+      const bS = survivorIds.has(b.candidate_id) ? 1 : 0;
+      return bS - aS || b.overall_score - a.overall_score;
+    })
     .slice(0, 10);
 
   return (
@@ -507,8 +516,11 @@ export default function App() {
   const isDone = status === 'done';
 
   // Best survivor (first object)
-  const firstSurvivor = results?.survivors
-    ? Object.values(results.survivors)[0]
+  const firstSurvivorObjId = results?.survivors
+    ? Object.keys(results.survivors)[0]
+    : null;
+  const firstSurvivor = firstSurvivorObjId
+    ? results.survivors[firstSurvivorObjId]
     : null;
 
   // Find uncertainty for best survivor
@@ -751,7 +763,7 @@ export default function App() {
                 borderBottom: '1px solid var(--border)',
               }}>
                 <div style={{ fontSize: 10, color: 'var(--success)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
-                  ✓ Best-Supported Height
+                  ✓ Best-Supported Height <span style={{ opacity: 0.6 }}>[{firstSurvivorObjId}]</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                   <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--success)', fontFamily: 'var(--text-mono)', letterSpacing: '-0.02em' }}>
@@ -762,7 +774,7 @@ export default function App() {
                   </span>
                   {bestUnc && (
                     <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--text-mono)', marginLeft: 4 }}>
-                      ±{bestUnc.ci_width.toFixed(3)}
+                      ±{((bestUnc.p95 - bestUnc.p05) / 2).toFixed(3)}
                     </span>
                   )}
                 </div>

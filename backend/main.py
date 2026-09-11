@@ -280,6 +280,8 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
             "terrain": {
                 "scale_mode": pr.terrain_result.scale_mode,
                 "terrain_depth_level": round(pr.terrain_result.terrain_depth_level, 4),
+                "terrain_roughness": round(pr.terrain_result.terrain_roughness, 4),
+                "pixels_per_meter": pr.terrain_result.pixels_per_meter,
             },
             "candidates": {
                 "total": pr.n_candidates,
@@ -379,6 +381,7 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
                 "rdsm.png",
                 "dsm.npz",
                 "dsm_metadata.json",
+                "uncertainty_report.json",
                 "mesh.glb",
             ],
         }
@@ -386,6 +389,19 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
         results_path = output_dir / "results.json"
         with open(results_path, "w") as f:
             json.dump(result_data, f, indent=2, default=str)
+
+        # Also write uncertainty_report.json to disk so /api/file can serve it
+        unc_path = output_dir / "uncertainty_report.json"
+        with open(unc_path, "w") as f:
+            json.dump(
+                {
+                    "n_iterations": pdu_result.n_iterations,
+                    "runtime_s": round(pdu_result.runtime_s, 3),
+                    "candidates": result_data["uncertainty"],
+                },
+                f,
+                indent=2,
+            )
 
         jobs[job_id]["status"] = "done"
         jobs[job_id]["result"] = result_data

@@ -1,0 +1,20 @@
+{
+  "status": "DATASET_NOT_FOUND",
+  "path": "/Users/mugil/Downloads/Pause/ARIES/data/dataset/raw",
+  "timestamp": "2026-09-11T02:37:50Z",
+  "dataset_name": "GAMUS (recommended by SIH26175 spec)",
+  "dataset_description": "GAMUS (earthflow/GAMUS) \u2014 RGB + normalized-DSM tiles across 5 US cities. 6 land-cover classes: ground, low-vegetation, building, water, road, tree. Pre-split by city (geography-clean). Suitable for depth-backbone adaptation.",
+  "source_url": "https://huggingface.co/datasets/earthflow/GAMUS",
+  "sample_count": null,
+  "image_dimensions": null,
+  "channels": null,
+  "has_height_target": null,
+  "height_target_range": null,
+  "land_cover_classes": null,
+  "cities": null,
+  "split_available": null,
+  "missing_or_corrupted": 0,
+  "notes": [
+    "Dataset directory not found: /Users/mugil/Downloads/Pause/ARIES/data/dataset/raw. To download GAMUS: `pip install datasets` then `python -c \"from datasets import load_dataset; ds = load_dataset('earthflow/GAMUS'); ds.save_to_disk('data/dataset/raw')\"`"
+  ]
+}

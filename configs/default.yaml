@@ -129,9 +129,25 @@ mesh:
   export_obj: false
   vertical_exaggeration: 1.5    # subtle exaggeration for 3D viewer clarity
 
-# ── Flood Simulation (Phase 16) ──────────────────────────────
+# ---------------------------------------------------------
+# Flood Simulation (Phase 16)
+# ---------------------------------------------------------
 flood:
-  levels_m: [1.0, 2.0, 3.0]    # hypothetical inundation depths
+  levels_m: [1.0, 2.0, 3.0]
+
+# ---------------------------------------------------------
+# Dataset & Training Pipeline (Prompt 1)
+# ---------------------------------------------------------
+dataset:
+  path: "earthflow/GAMUS"
+  subset_size: 100         # Use 100 samples for the MVP prototype baseline
+  split_ratios: [0.7, 0.15, 0.15]
+  cache_dir: "data/dataset"
+  finetune:
+    lr: 1e-4
+    batch_size: 4
+    epochs: 5
+    # hypothetical inundation depths
   # UI MUST display: "SCENARIO SIMULATION — NOT A FLOOD FORECAST"
 
 # ── Backend (Phase 17) ───────────────────────────────────────

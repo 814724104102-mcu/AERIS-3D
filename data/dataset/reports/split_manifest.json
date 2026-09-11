@@ -1,0 +1,10 @@
+{
+  "status": "SKIPPED_NO_DATA",
+  "notes": "Split manifests not generated \u2014 dataset not found locally. When GAMUS is present, the existing city-based split is reused directly (cities: Austin, Chicago, Jacksonville, Omaha, Tyrol-E) rather than re-splitting, because it is already geography-clean and splitting nadir imagery by city prevents near-duplicate patches from leaking across train/test.",
+  "split_strategy": "GEOGRAPHY_CLEAN_BY_CITY (GAMUS native split)",
+  "target_ratios": {
+    "train": 0.65,
+    "val": 0.175,
+    "test": 0.175
+  }
+}

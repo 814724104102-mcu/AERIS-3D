@@ -1,0 +1,23 @@
+{
+  "description": "\u00a78.5 comparison: pretrained-only vs pretrained+AERIS vs (fine-tuned+AERIS if done)",
+  "rows": [
+    {
+      "mode": "A \u2014 Pretrained depth only (no AERIS)",
+      "status": "SKIPPED_NO_REFERENCE_DATA",
+      "reason": "--skip-baseline passed by user."
+    },
+    {
+      "mode": "B \u2014 Pretrained depth + full AERIS-3D",
+      "status": "REQUIRES_DATASET_PRESENT_FOR_BATCH_EVALUATION",
+      "notes": "To compute: run the full AERIS-3D pipeline on each dataset sample and compare survivors' heights against GT DSM. This is implemented but requires the dataset to be present locally."
+    },
+    {
+      "mode": "C \u2014 Fine-tuned depth + full AERIS-3D",
+      "status": "SKIPPED",
+      "reason": "Apple M2 MPS detected. MPS is suitable for inference but not recommended for fine-tuning a ViT-based depth backbone (insufficient VRAM, slow backward pass). Fine-tuning SKIPPED explicitly. The pretrained-only baseline is the MVP as per \u00a78.4."
+    }
+  ],
+  "notes": [
+    "All metrics are scale-invariant (both prediction and GT normalized to [0,1]). Absolute metric accuracy requires GSD or reference DEM anchoring."
+  ]
+}

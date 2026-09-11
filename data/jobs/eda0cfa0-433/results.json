@@ -1,0 +1,524 @@
+{
+  "aeris3d_version": "0.2.0",
+  "job_id": "eda0cfa0-433",
+  "input": {
+    "file": "input.jpg",
+    "format": "RGB_IMAGE",
+    "size": {
+      "height": 1409,
+      "width": 1117
+    },
+    "georef_present": false
+  },
+  "depth": {
+    "model": "depth_anything_v2_small",
+    "device": "mps",
+    "relative_only": true,
+    "runtime_s": 9.009
+  },
+  "structure": {
+    "num_regions": 4,
+    "num_buildings": 1,
+    "segmentation_quality": 1.0,
+    "backend": "classical_canny_slic"
+  },
+  "terrain": {
+    "scale_mode": "RELATIVE",
+    "terrain_depth_level": 3.6922
+  },
+  "candidates": {
+    "total": 9,
+    "survived": 1,
+    "rejected": 7
+  },
+  "shadow": {
+    "available": true,
+    "reliable": true,
+    "effective_weight": 0.45
+  },
+  "survivors": {
+    "obj_000": {
+      "candidate_id": "H0001",
+      "height_value": 18.08,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "overall_score": 0.3653,
+      "component_scores": {
+        "depth_agreement": 0.0388,
+        "edge_overlap": 0.2466,
+        "segmentation_boundary": 0.3487,
+        "shadow": 0.7887,
+        "occlusion": 0.9776,
+        "terrain": 0.038,
+        "structural_plausibility": 0.9812
+      },
+      "active_evidence": [
+        "depth_agreement",
+        "edge_overlap",
+        "segmentation_boundary",
+        "shadow",
+        "occlusion",
+        "terrain",
+        "structural_plausibility"
+      ],
+      "weights": {
+        "depth_agreement": 0.266,
+        "edge_overlap": 0.266,
+        "segmentation_boundary": 0.1596,
+        "shadow": 0.0957,
+        "occlusion": 0.1064,
+        "terrain": 0.0532,
+        "structural_plausibility": 0.0532
+      }
+    }
+  },
+  "candidates_table": [
+    {
+      "candidate_id": "H0000",
+      "object_id": "obj_000",
+      "height_value": 12.09,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3436,
+      "component_scores": {
+        "depth_agreement": 0.0174,
+        "edge_overlap": 0.2078,
+        "segmentation_boundary": 0.2939,
+        "shadow": 0.7899,
+        "occlusion": 0.9078,
+        "terrain": 0.2316,
+        "structural_plausibility": 0.9832
+      }
+    },
+    {
+      "candidate_id": "H0001",
+      "object_id": "obj_000",
+      "height_value": 18.08,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "SURVIVED",
+      "overall_score": 0.3653,
+      "component_scores": {
+        "depth_agreement": 0.0388,
+        "edge_overlap": 0.2466,
+        "segmentation_boundary": 0.3487,
+        "shadow": 0.7887,
+        "occlusion": 0.9776,
+        "terrain": 0.038,
+        "structural_plausibility": 0.9812
+      }
+    },
+    {
+      "candidate_id": "H0002",
+      "object_id": "obj_000",
+      "height_value": 24.07,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3601,
+      "component_scores": {
+        "depth_agreement": 0.0688,
+        "edge_overlap": 0.259,
+        "segmentation_boundary": 0.3663,
+        "shadow": 0.709,
+        "occlusion": 0.9525,
+        "terrain": 0.003,
+        "structural_plausibility": 0.8483
+      }
+    },
+    {
+      "candidate_id": "H0003",
+      "object_id": "obj_000",
+      "height_value": 30.06,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3392,
+      "component_scores": {
+        "depth_agreement": 0.1073,
+        "edge_overlap": 0.259,
+        "segmentation_boundary": 0.3663,
+        "shadow": 0.5812,
+        "occlusion": 0.8826,
+        "terrain": 0.0001,
+        "structural_plausibility": 0.6354
+      }
+    },
+    {
+      "candidate_id": "H0004",
+      "object_id": "obj_000",
+      "height_value": 36.05,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3196,
+      "component_scores": {
+        "depth_agreement": 0.1543,
+        "edge_overlap": 0.259,
+        "segmentation_boundary": 0.3663,
+        "shadow": 0.4474,
+        "occlusion": 0.8128,
+        "terrain": 0.0,
+        "structural_plausibility": 0.4123
+      }
+    },
+    {
+      "candidate_id": "H0005",
+      "object_id": "obj_000",
+      "height_value": 42.04,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.307,
+      "component_scores": {
+        "depth_agreement": 0.2099,
+        "edge_overlap": 0.259,
+        "segmentation_boundary": 0.3663,
+        "shadow": 0.3391,
+        "occlusion": 0.7429,
+        "terrain": 0.0,
+        "structural_plausibility": 0.2318
+      }
+    },
+    {
+      "candidate_id": "H0006",
+      "object_id": "obj_000",
+      "height_value": 48.02,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3034,
+      "component_scores": {
+        "depth_agreement": 0.2739,
+        "edge_overlap": 0.259,
+        "segmentation_boundary": 0.3663,
+        "shadow": 0.2678,
+        "occlusion": 0.6731,
+        "terrain": 0.0,
+        "structural_plausibility": 0.1129
+      }
+    },
+    {
+      "candidate_id": "H0007",
+      "object_id": "obj_000",
+      "height_value": 54.01,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3081,
+      "component_scores": {
+        "depth_agreement": 0.3465,
+        "edge_overlap": 0.259,
+        "segmentation_boundary": 0.3663,
+        "shadow": 0.2286,
+        "occlusion": 0.6032,
+        "terrain": 0.0,
+        "structural_plausibility": 0.0477
+      }
+    },
+    {
+      "candidate_id": "H0008",
+      "object_id": "obj_000",
+      "height_value": 60.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3189,
+      "component_scores": {
+        "depth_agreement": 0.4276,
+        "edge_overlap": 0.259,
+        "segmentation_boundary": 0.3663,
+        "shadow": 0.2105,
+        "occlusion": 0.5333,
+        "terrain": 0.0,
+        "structural_plausibility": 0.0174
+      }
+    }
+  ],
+  "uncertainty": [
+    {
+      "candidate_id": "H0000",
+      "object_id": "obj_000",
+      "height_value": 12.09,
+      "nominal_score": 0.3436,
+      "mean_score": 0.3885,
+      "std_score": 0.0474,
+      "p05": 0.3526,
+      "p95": 0.4697,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0001",
+      "object_id": "obj_000",
+      "height_value": 18.08,
+      "nominal_score": 0.3653,
+      "mean_score": 0.4427,
+      "std_score": 0.0502,
+      "p05": 0.3854,
+      "p95": 0.5214,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0002",
+      "object_id": "obj_000",
+      "height_value": 24.07,
+      "nominal_score": 0.3601,
+      "mean_score": 0.474,
+      "std_score": 0.0696,
+      "p05": 0.3957,
+      "p95": 0.5942,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0003",
+      "object_id": "obj_000",
+      "height_value": 30.06,
+      "nominal_score": 0.3392,
+      "mean_score": 0.4616,
+      "std_score": 0.0587,
+      "p05": 0.3786,
+      "p95": 0.5446,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0004",
+      "object_id": "obj_000",
+      "height_value": 36.05,
+      "nominal_score": 0.3196,
+      "mean_score": 0.4385,
+      "std_score": 0.0637,
+      "p05": 0.3504,
+      "p95": 0.5275,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0005",
+      "object_id": "obj_000",
+      "height_value": 42.04,
+      "nominal_score": 0.307,
+      "mean_score": 0.4008,
+      "std_score": 0.0618,
+      "p05": 0.3068,
+      "p95": 0.4803,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0006",
+      "object_id": "obj_000",
+      "height_value": 48.02,
+      "nominal_score": 0.3034,
+      "mean_score": 0.3692,
+      "std_score": 0.0705,
+      "p05": 0.2732,
+      "p95": 0.4729,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0007",
+      "object_id": "obj_000",
+      "height_value": 54.01,
+      "nominal_score": 0.3081,
+      "mean_score": 0.3374,
+      "std_score": 0.0711,
+      "p05": 0.2496,
+      "p95": 0.4481,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0008",
+      "object_id": "obj_000",
+      "height_value": 60.0,
+      "nominal_score": 0.3189,
+      "mean_score": 0.3085,
+      "std_score": 0.0668,
+      "p05": 0.2324,
+      "p95": 0.4203,
+      "confidence_label": "LOW"
+    }
+  ],
+  "height_fingerprint": {
+    "obj_000": {
+      "heights": [
+        12.09371860355885,
+        18.082003778113993,
+        24.070288952669138,
+        30.05857412722428,
+        36.04685930177942,
+        42.035144476334565,
+        48.02342965088971,
+        54.011714825444855,
+        59.99999999999999
+      ],
+      "scores": [
+        0.19821837112640542,
+        0.22793031346336648,
+        0.25251935627572014,
+        0.24098841257883724,
+        0.278161433706576,
+        0.2908766623751411,
+        0.2803968261291276,
+        0.27918317866678866,
+        0.3005708054226878
+      ],
+      "height_unit": "RELATIVE_DEPTH_UNITS"
+    }
+  },
+  "sdrl_log": [
+    {
+      "iteration": 0,
+      "candidate_id": "H0001",
+      "object_id": "obj_000",
+      "height_value": 18.082003778113993,
+      "score": 0.3653,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0002",
+      "object_id": "obj_000",
+      "height_value": 24.070288952669138,
+      "score": 0.3601,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0000",
+      "object_id": "obj_000",
+      "height_value": 12.09371860355885,
+      "score": 0.3436,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.344 < threshold 0.350; weak evidence: depth_agreement, edge_overlap, segmentation_boundary, terrain",
+      "refinement": null
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0003",
+      "object_id": "obj_000",
+      "height_value": 30.05857412722428,
+      "score": 0.3392,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.339 < threshold 0.350; weak evidence: depth_agreement, edge_overlap, terrain",
+      "refinement": null
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0004",
+      "object_id": "obj_000",
+      "height_value": 36.04685930177942,
+      "score": 0.3196,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.320 < threshold 0.350; weak evidence: depth_agreement, edge_overlap, terrain",
+      "refinement": null
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0008",
+      "object_id": "obj_000",
+      "height_value": 59.99999999999999,
+      "score": 0.3189,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.319 < threshold 0.350; weak evidence: edge_overlap, shadow, terrain, structural_plausibility",
+      "refinement": null
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0007",
+      "object_id": "obj_000",
+      "height_value": 54.011714825444855,
+      "score": 0.3081,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.308 < threshold 0.350; weak evidence: edge_overlap, shadow, terrain, structural_plausibility",
+      "refinement": null
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0005",
+      "object_id": "obj_000",
+      "height_value": 42.035144476334565,
+      "score": 0.307,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.307 < threshold 0.350; weak evidence: depth_agreement, edge_overlap, terrain, structural_plausibility",
+      "refinement": null
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0006",
+      "object_id": "obj_000",
+      "height_value": 48.02342965088971,
+      "score": 0.3034,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.303 < threshold 0.350; weak evidence: depth_agreement, edge_overlap, shadow, terrain, structural_plausibility",
+      "refinement": null
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0001",
+      "object_id": "obj_000",
+      "height_value": 18.082003778113993,
+      "score": 0.3653,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.365 < threshold 0.378; weak evidence: depth_agreement, edge_overlap, terrain",
+      "refinement": null
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0002",
+      "object_id": "obj_000",
+      "height_value": 24.070288952669138,
+      "score": 0.3601,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.360 < threshold 0.378; weak evidence: depth_agreement, edge_overlap, terrain",
+      "refinement": null
+    }
+  ],
+  "dsm": {
+    "scale_mode": "RELATIVE",
+    "exported_files": [
+      "dsm.png",
+      "rdsm.png",
+      "dsm.npz",
+      "dsm_metadata.json"
+    ],
+    "stats": {
+      "dsm": {
+        "min": 0.2117510586977005,
+        "max": 4.746678829193115,
+        "mean": 2.2038211822509766,
+        "std": 1.323360562324524
+      },
+      "rdsm": {
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "nonzero_fraction": 0.0
+      }
+    }
+  },
+  "mesh": {
+    "vertex_count": 65536,
+    "face_count": 130050,
+    "vertical_exaggeration": 1.5,
+    "warning": "Mesh Z-axis is in RELATIVE depth units \u2014 not metric elevation."
+  },
+  "phase_runtimes_s": {
+    "phase3_structure": 2.286,
+    "phase4_hcdc": 0.07,
+    "phase10_terrain": 5.017,
+    "phase5_candidates": 0.0,
+    "phase6_7_chf_iscl": 0.009,
+    "phase8_shadow": 0.248,
+    "phase9_occlusion": 0.001,
+    "phase11_egss": 0.002,
+    "phase12_sdrl": 0.0
+  },
+  "total_runtime_s": 7.635,
+  "output_files": [
+    "input_preview.png",
+    "depth.png",
+    "structures.png",
+    "depth_corrected.png",
+    "height_fingerprint.png",
+    "verification_table.png",
+    "dsm.png",
+    "rdsm.png",
+    "dsm.npz",
+    "dsm_metadata.json",
+    "mesh.glb"
+  ]
+}

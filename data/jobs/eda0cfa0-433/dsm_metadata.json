@@ -1,0 +1,24 @@
+{
+  "scale_mode": "RELATIVE",
+  "pixels_per_meter": null,
+  "terrain_depth_level": 3.692222833633423,
+  "terrain_roughness": 0.5596215724945068,
+  "dsm_stats": {
+    "min": 0.2117510586977005,
+    "max": 4.746678829193115,
+    "mean": 2.2038211822509766,
+    "std": 1.323360562324524
+  },
+  "rdsm_stats": {
+    "min": 0.0,
+    "max": 0.0,
+    "mean": 0.0,
+    "std": 0.0,
+    "nonzero_fraction": 0.0
+  },
+  "shape": [
+    1409,
+    1117
+  ],
+  "warning": "All elevation values are RELATIVE \u2014 no metric anchor. Do not use as absolute elevations."
+}

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AERIS-3D — Demo CLI (Phases 0–12)
+AERIS-3D — Demo CLI (Phases 0–15)
 Usage: python scripts/demo.py --input <image_path> [--config <config.yaml>] [--output-dir <dir>]
 
 Gates tested:
@@ -10,6 +10,9 @@ Gates tested:
   Gate 4 — candidate heights generated
   Gate 5 — candidate scores generated
   Gate 6 — incorrect candidates rejected, one survives
+  Gate 7 — DSM/rDSM generated (dsm.png, rdsm.png, dsm.npz)
+  Gate 8 — uncertainty generated (uncertainty_report.json)
+  Gate 9 — GLB generated with vertex colors (mesh.glb)
 
 Outputs:
   input_preview.png        — resized RGB preview
@@ -18,6 +21,13 @@ Outputs:
   structures.png           — structure label overlay
   depth_corrected.png      — HCDC-corrected depth
   height_fingerprint.png   — height vs. consistency chart (judge-facing)
+  verification_table.png   — AERIS VERIFICATION table image
+  dsm.png                  — colorized DSM/rDSM surface model
+  rdsm.png                 — relative DSM (object height above terrain)
+  dsm.npz                  — raw numpy arrays
+  dsm_metadata.json        — DSM metadata
+  uncertainty_report.json  — per-candidate uncertainty + confidence labels
+  mesh.glb                 — 3D terrain mesh (vertex-colored)
   candidates.json          — full candidate table
   results.json             — structured pipeline metadata
 """
@@ -696,6 +706,103 @@ def run_demo(args: argparse.Namespace) -> int:
         json.dump(results, f, indent=2, default=str)
     log.info("Saved: %s", output_dir / "results.json")
 
+    # ── Gate 7: DSM / rDSM export ─────────────────────────────
+    log.info("=== GATE 7: DSM / rDSM Export ===")
+    try:
+        from core.dsm_exporter import export_dsm
+
+        dsm_result = export_dsm(
+            pr.hcdc_result.corrected_depth,
+            pr.terrain_result,
+            input_data.georef,
+            output_dir,
+            cfg,
+        )
+        log.info(
+            "Gate 7 PASSED | files=%s | scale=%s",
+            dsm_result.exported_files,
+            dsm_result.scale_mode,
+        )
+        gate7_pass = True
+    except Exception as exc:
+        log.error("Gate 7 DSM export failed: %s", exc, exc_info=True)
+        dsm_result = None
+        gate7_pass = False
+
+    # ── Gate 8: Uncertainty (PDU) ──────────────────────────────
+    log.info("=== GATE 8: Uncertainty (PDU) ===")
+    try:
+        from core.uncertainty import run_pdu
+
+        pdu_result = run_pdu(
+            pr.candidates, pr.evidence_scores, pr.hcdc_result.corrected_depth, cfg
+        )
+        unc_report = [
+            {
+                "candidate_id": u.candidate_id,
+                "object_id": u.object_id,
+                "height_value": round(u.height_value, 2),
+                "nominal_score": round(u.nominal_score, 4),
+                "mean_score": round(u.mean_score, 4),
+                "std_score": round(u.std_score, 4),
+                "p05": round(u.p05, 4),
+                "p95": round(u.p95, 4),
+                "ci_width": round(u.ci_width, 4),
+                "confidence_label": u.confidence_label,
+            }
+            for u in pdu_result.uncertainties
+        ]
+        with open(output_dir / "uncertainty_report.json", "w") as f:
+            json.dump(
+                {
+                    "n_iterations": pdu_result.n_iterations,
+                    "runtime_s": round(pdu_result.runtime_s, 3),
+                    "candidates": unc_report,
+                },
+                f,
+                indent=2,
+            )
+        log.info(
+            "Gate 8 PASSED | %d uncertainty estimates | %.2fs",
+            len(pdu_result.uncertainties),
+            pdu_result.runtime_s,
+        )
+        gate8_pass = True
+    except Exception as exc:
+        log.error("Gate 8 PDU failed: %s", exc, exc_info=True)
+        pdu_result = None
+        gate8_pass = False
+
+    # ── Gate 9: Mesh GLB ───────────────────────────────────────
+    log.info("=== GATE 9: Mesh (GLB) ===")
+    try:
+        from core.mesh_builder import build_mesh
+
+        dsm_array = (
+            dsm_result.dsm
+            if dsm_result is not None
+            else pr.hcdc_result.corrected_depth
+        )
+        mesh_result = build_mesh(
+            dsm_array,
+            input_data.image_rgb,
+            pr.terrain_result.scale_mode,
+            output_dir,
+            cfg,
+        )
+        log.info(
+            "Gate 9 PASSED | verts=%d faces=%d glb=%.1f KB | %.3fs",
+            mesh_result.vertex_count,
+            mesh_result.face_count,
+            mesh_result.glb_path.stat().st_size / 1024 if mesh_result.glb_path.exists() else 0,
+            mesh_result.runtime_s,
+        )
+        gate9_pass = mesh_result.glb_path.exists()
+    except Exception as exc:
+        log.error("Gate 9 mesh failed: %s", exc, exc_info=True)
+        mesh_result = None
+        gate9_pass = False
+
     # ── Print judge-facing summary ─────────────────────────────
     print("\n" + "=" * 65)
     print("AERIS-3D Demo — Phase 0-12 Complete")
@@ -746,7 +853,7 @@ def run_demo(args: argparse.Namespace) -> int:
     print(f"  Runtime: {total_runtime:.2f}s total")
     print()
     print("  Outputs:")
-    for name in [
+    output_files = [
         "input_preview.png",
         "depth.png",
         "structures.png",
@@ -755,8 +862,18 @@ def run_demo(args: argparse.Namespace) -> int:
         "verification_table.png",
         "candidates.json",
         "results.json",
-    ]:
-        print(f"    - {name}")
+    ]
+    if gate7_pass:
+        output_files += ["dsm.png", "rdsm.png", "dsm.npz", "dsm_metadata.json"]
+    if gate8_pass:
+        output_files.append("uncertainty_report.json")
+    if gate9_pass:
+        output_files.append("mesh.glb")
+    for name in output_files:
+        fpath = output_dir / name
+        size_kb = fpath.stat().st_size / 1024 if fpath.exists() else 0
+        exists_mark = "✓" if fpath.exists() else "✗"
+        print(f"    {exists_mark} {name}  ({size_kb:.1f} KB)")
     print("=" * 65)
     all_gates = [
         "Gate1_Input",
@@ -767,6 +884,12 @@ def run_demo(args: argparse.Namespace) -> int:
     ]
     if gate6_pass:
         all_gates.append("Gate6_Rejection")
+    if gate7_pass:
+        all_gates.append("Gate7_DSM")
+    if gate8_pass:
+        all_gates.append("Gate8_Uncertainty")
+    if gate9_pass:
+        all_gates.append("Gate9_Mesh")
     print("  " + "  ".join(f"{g.split('_')[0]} ✓" for g in all_gates))
     print()
     return 0

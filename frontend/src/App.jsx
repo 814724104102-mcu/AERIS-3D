@@ -274,6 +274,150 @@ function SlopeAssessment({ results }) {
   );
 }
 
+// ─── Idle Center State ──────────────────────────────────────────
+function IdleCenterState({ isProcessing }) {
+  return (
+    <div style={{
+      width: '100%', height: '100%',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexDirection: 'column', gap: 0,
+      position: 'relative',
+    }}>
+      {/* Animated topographic globe */}
+      <svg
+        width="340" height="340" viewBox="0 0 340 340"
+        style={{ opacity: 0.55, position: 'absolute' }}
+      >
+        <defs>
+          <radialGradient id="glow-center" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#4ecdc4" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#4ecdc4" stopOpacity="0" />
+          </radialGradient>
+          <filter id="blur-glow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+
+        {/* Background glow */}
+        <circle cx="170" cy="170" r="140" fill="url(#glow-center)" />
+
+        {/* Concentric topographic rings */}
+        {[140, 120, 100, 82, 66, 52, 40, 30, 20, 12].map((r, i) => (
+          <circle
+            key={r}
+            cx="170" cy="170" r={r}
+            fill="none"
+            stroke="#4ecdc4"
+            strokeWidth={i === 0 ? 0.6 : 0.4}
+            opacity={0.12 + i * 0.04}
+          />
+        ))}
+
+        {/* Lat/lon grid lines */}
+        {[-60, -30, 0, 30, 60].map(deg => {
+          const y = 170 + (deg / 90) * 140;
+          return (
+            <line key={deg}
+              x1="30" y1={y} x2="310" y2={y}
+              stroke="#4ecdc4" strokeWidth="0.3" opacity="0.12"
+            />
+          );
+        })}
+        {[0, 45, 90, 135].map(angle => {
+          const rad = angle * Math.PI / 180;
+          return (
+            <line key={angle}
+              x1={170 + Math.cos(rad) * 140} y1={170 + Math.sin(rad) * 140}
+              x2={170 - Math.cos(rad) * 140} y2={170 - Math.sin(rad) * 140}
+              stroke="#4ecdc4" strokeWidth="0.3" opacity="0.12"
+            />
+          );
+        })}
+
+        {/* Bright outer ring */}
+        <circle cx="170" cy="170" r="140"
+          fill="none" stroke="#4ecdc4" strokeWidth="1"
+          opacity="0.3"
+          strokeDasharray="6 6"
+          style={{ animation: 'spin 30s linear infinite' }}
+          filter="url(#blur-glow)"
+        />
+
+        {/* Scanning beam */}
+        <line
+          x1="170" y1="170" x2="310" y2="170"
+          stroke="url(#scan-grad)" strokeWidth="1.5"
+          opacity="0.5"
+          style={{ transformOrigin: '170px 170px', animation: 'spin 4s linear infinite' }}
+        />
+        <defs>
+          <linearGradient id="scan-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#4ecdc4" stopOpacity="0" />
+            <stop offset="100%" stopColor="#4ecdc4" stopOpacity="0.9" />
+          </linearGradient>
+        </defs>
+
+        {/* Crosshair */}
+        <circle cx="170" cy="170" r="4" fill="#4ecdc4" opacity="0.7" />
+        <circle cx="170" cy="170" r="10" fill="none" stroke="#4ecdc4" strokeWidth="0.8" opacity="0.4" />
+
+        {/* Corner brackets */}
+        {[[30,30], [310,30], [30,310], [310,310]].map(([x, y], i) => {
+          const dx = x < 170 ? 1 : -1;
+          const dy = y < 170 ? 1 : -1;
+          return (
+            <g key={i} opacity="0.4">
+              <line x1={x} y1={y} x2={x + dx*18} y2={y} stroke="#4ecdc4" strokeWidth="1.5" />
+              <line x1={x} y1={y} x2={x} y2={y + dy*18} stroke="#4ecdc4" strokeWidth="1.5" />
+            </g>
+          );
+        })}
+
+        {/* Data points */}
+        {[[220, 120], [130, 200], [260, 220], [100, 140], [190, 250]].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="2.5"
+            fill="#4ecdc4" opacity={0.4 + i * 0.06}
+          />
+        ))}
+      </svg>
+
+      {/* Text overlay */}
+      <div style={{
+        position: 'relative', textAlign: 'center', zIndex: 1,
+        marginTop: 200,
+      }}>
+        <div style={{
+          fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase',
+          color: 'rgba(78,205,196,0.4)', fontFamily: 'var(--font-mono)',
+          marginBottom: 8,
+        }}>
+          {isProcessing ? 'Pipeline running…' : 'Awaiting input'}
+        </div>
+        <div style={{
+          fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
+          color: 'rgba(78,205,196,0.2)', fontFamily: 'var(--font-mono)',
+        }}>
+          AERIS-3D · SIH26175 · DepthWizard
+        </div>
+      </div>
+
+      {/* Bottom coordinate HUD */}
+      <div style={{
+        position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+        display: 'flex', gap: 20,
+      }}>
+        {['LAT 28.6139° N', 'LON 77.2090° E', 'ALT --- m', 'MODE RELATIVE'].map(label => (
+          <span key={label} style={{
+            fontSize: 9, color: 'rgba(78,205,196,0.2)', fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.12em',
+          }}>{label}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main App ───────────────────────────────────────────────────
 export default function App() {
   const [file, setFile]         = useState(null);
@@ -384,36 +528,47 @@ export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', background: 'var(--bg-void)' }}>
 
+      {/* ── Background layers ── */}
+      <div className="blob-br" />
+      <div className="grid-overlay" />
+
       {/* ── 3D Viewer: fullscreen background ── */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
         {glbUrl ? (
           <ThreeViewer key={viewerKey} glbUrl={glbUrl} />
         ) : (
-          <div style={{
-            width: '100%', height: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexDirection: 'column', gap: 16,
-          }}>
-            {/* Decorative sphere */}
-            <svg width="120" height="120" viewBox="0 0 120 120" style={{ opacity: 0.12 }}>
-              <circle cx="60" cy="60" r="55" stroke="#4ecdc4" strokeWidth="1" fill="none" />
-              <ellipse cx="60" cy="60" rx="55" ry="20" stroke="#4ecdc4" strokeWidth="0.5" fill="none" />
-              <line x1="5" y1="60" x2="115" y2="60" stroke="#4ecdc4" strokeWidth="0.5" />
-              <line x1="60" y1="5" x2="60" y2="115" stroke="#4ecdc4" strokeWidth="0.5" />
-            </svg>
-            <span style={{ color: 'rgba(78,205,196,0.18)', fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-              Upload an image to begin 3D reconstruction
-            </span>
-          </div>
+          <IdleCenterState isProcessing={isProcessing} />
         )}
       </div>
 
       {/* ── HUD overlay ── */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 1,
+        position: 'absolute', inset: 0, zIndex: 2,
         display: 'flex', padding: 16, gap: 14,
         pointerEvents: 'none',
       }}>
+
+        {/* Top-right status watermark */}
+        <div style={{
+          position: 'absolute', top: 16, right: 16, zIndex: 10,
+          display: 'flex', alignItems: 'center', gap: 8,
+          pointerEvents: 'none',
+          fontFamily: 'var(--font-mono)', fontSize: 10,
+          color: 'rgba(78,205,196,0.6)',
+          background: 'rgba(10,25,30,0.5)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(78,205,196,0.15)',
+          borderRadius: 4, padding: '4px 10px',
+        }}>
+          <div style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: isProcessing ? '#f39c12' : isDone ? '#00e676' : '#4ecdc4',
+            boxShadow: '0 0 6px currentColor',
+          }} />
+          <span style={{ letterSpacing: '0.1em' }}>
+            {isProcessing ? `STATUS: ${status.toUpperCase()}` : isDone ? 'STATUS: RECONSTRUCTED' : 'STATUS: STANDBY'}
+          </span>
+        </div>
 
         {/* ══ LEFT PANEL ══════════════════════════════════════ */}
         <div className="glass-panel animate-fade-in" style={{
@@ -422,9 +577,9 @@ export default function App() {
         }}>
           {/* Header */}
           <div style={{
-            padding: '16px 20px 14px',
-            borderBottom: '1px solid var(--border)',
-            background: 'linear-gradient(135deg, rgba(78,205,196,0.08), transparent)',
+            padding: '18px 20px 16px',
+            borderBottom: '1px solid rgba(78,205,196,0.1)',
+            background: 'linear-gradient(160deg, rgba(78,205,196,0.08) 0%, rgba(124,111,247,0.04) 100%)',
           }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--accent)', letterSpacing: '-0.02em' }}>

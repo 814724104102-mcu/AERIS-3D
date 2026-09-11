@@ -1,0 +1,2344 @@
+{
+  "aeris3d_version": "0.2.0",
+  "job_id": "e0bad8d3-a10",
+  "input": {
+    "file": "input.jpg",
+    "format": "RGB_IMAGE",
+    "size": {
+      "height": 512,
+      "width": 512
+    },
+    "georef_present": false
+  },
+  "depth": {
+    "model": "cached",
+    "device": "mps",
+    "relative_only": true,
+    "runtime_s": 0.0
+  },
+  "structure": {
+    "num_regions": 21,
+    "num_buildings": 8,
+    "segmentation_quality": 1.0,
+    "backend": "classical_canny_slic"
+  },
+  "terrain": {
+    "scale_mode": "RELATIVE",
+    "terrain_depth_level": 1.3778
+  },
+  "candidates": {
+    "total": 54,
+    "survived": 8,
+    "rejected": 18
+  },
+  "shadow": {
+    "available": true,
+    "reliable": true,
+    "effective_weight": 0.421
+  },
+  "survivors": {
+    "obj_007": {
+      "candidate_id": "H0050",
+      "height_value": 4.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "overall_score": 0.5733,
+      "component_scores": {
+        "depth_agreement": 0.768,
+        "edge_overlap": 0.1065,
+        "segmentation_boundary": 0.6125,
+        "shadow": 0.6813,
+        "occlusion": 0.8192,
+        "terrain": 0.9134,
+        "structural_plausibility": 0.8021
+      },
+      "active_evidence": [
+        "depth_agreement",
+        "edge_overlap",
+        "segmentation_boundary",
+        "shadow",
+        "occlusion",
+        "terrain",
+        "structural_plausibility"
+      ],
+      "weights": {
+        "depth_agreement": 0.2676,
+        "edge_overlap": 0.2676,
+        "segmentation_boundary": 0.1606,
+        "shadow": 0.0901,
+        "occlusion": 0.1071,
+        "terrain": 0.0535,
+        "structural_plausibility": 0.0535
+      }
+    },
+    "obj_003": {
+      "candidate_id": "H0031",
+      "height_value": 23.79,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "overall_score": 0.5286,
+      "component_scores": {
+        "depth_agreement": 0.8422,
+        "edge_overlap": 0.4798,
+        "segmentation_boundary": 0.0955,
+        "shadow": 0.4,
+        "occlusion": 0.7224,
+        "terrain": 0.0035,
+        "structural_plausibility": 0.8567
+      },
+      "active_evidence": [
+        "depth_agreement",
+        "edge_overlap",
+        "segmentation_boundary",
+        "shadow",
+        "occlusion",
+        "terrain",
+        "structural_plausibility"
+      ],
+      "weights": {
+        "depth_agreement": 0.2676,
+        "edge_overlap": 0.2676,
+        "segmentation_boundary": 0.1606,
+        "shadow": 0.0901,
+        "occlusion": 0.1071,
+        "terrain": 0.0535,
+        "structural_plausibility": 0.0535
+      }
+    },
+    "obj_005": {
+      "candidate_id": "H0044",
+      "height_value": 7.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "overall_score": 0.5097,
+      "component_scores": {
+        "depth_agreement": 0.5111,
+        "edge_overlap": 0.0988,
+        "segmentation_boundary": 0.6875,
+        "shadow": 0.7362,
+        "occlusion": 0.8542,
+        "terrain": 0.5698,
+        "structural_plausibility": 0.8936
+      },
+      "active_evidence": [
+        "depth_agreement",
+        "edge_overlap",
+        "segmentation_boundary",
+        "shadow",
+        "occlusion",
+        "terrain",
+        "structural_plausibility"
+      ],
+      "weights": {
+        "depth_agreement": 0.2676,
+        "edge_overlap": 0.2676,
+        "segmentation_boundary": 0.1606,
+        "shadow": 0.0901,
+        "occlusion": 0.1071,
+        "terrain": 0.0535,
+        "structural_plausibility": 0.0535
+      }
+    },
+    "obj_002": {
+      "candidate_id": "H0022",
+      "height_value": 13.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "overall_score": 0.4804,
+      "component_scores": {
+        "depth_agreement": 0.0307,
+        "edge_overlap": 0.3926,
+        "segmentation_boundary": 0.8375,
+        "shadow": 0.7973,
+        "occlusion": 0.9242,
+        "terrain": 0.1616,
+        "structural_plausibility": 0.9955
+      },
+      "active_evidence": [
+        "depth_agreement",
+        "edge_overlap",
+        "segmentation_boundary",
+        "shadow",
+        "occlusion",
+        "terrain",
+        "structural_plausibility"
+      ],
+      "weights": {
+        "depth_agreement": 0.2676,
+        "edge_overlap": 0.2676,
+        "segmentation_boundary": 0.1606,
+        "shadow": 0.0901,
+        "occlusion": 0.1071,
+        "terrain": 0.0535,
+        "structural_plausibility": 0.0535
+      }
+    },
+    "obj_004": {
+      "candidate_id": "H0040",
+      "height_value": 17.17,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "overall_score": 0.4001,
+      "component_scores": {
+        "depth_agreement": 0.293,
+        "edge_overlap": 0.1713,
+        "segmentation_boundary": 0.5011,
+        "shadow": 0.4,
+        "occlusion": 0.967,
+        "terrain": 0.0524,
+        "structural_plausibility": 0.9906
+      },
+      "active_evidence": [
+        "depth_agreement",
+        "edge_overlap",
+        "segmentation_boundary",
+        "shadow",
+        "occlusion",
+        "terrain",
+        "structural_plausibility"
+      ],
+      "weights": {
+        "depth_agreement": 0.2676,
+        "edge_overlap": 0.2676,
+        "segmentation_boundary": 0.1606,
+        "shadow": 0.0901,
+        "occlusion": 0.1071,
+        "terrain": 0.0535,
+        "structural_plausibility": 0.0535
+      }
+    },
+    "obj_001": {
+      "candidate_id": "H0014",
+      "height_value": 16.2,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "overall_score": 0.3991,
+      "component_scores": {
+        "depth_agreement": 0.0377,
+        "edge_overlap": 0.3874,
+        "segmentation_boundary": 0.3356,
+        "shadow": 0.7983,
+        "occlusion": 0.9556,
+        "terrain": 0.0725,
+        "structural_plausibility": 0.9971
+      },
+      "active_evidence": [
+        "depth_agreement",
+        "edge_overlap",
+        "segmentation_boundary",
+        "shadow",
+        "occlusion",
+        "terrain",
+        "structural_plausibility"
+      ],
+      "weights": {
+        "depth_agreement": 0.2676,
+        "edge_overlap": 0.2676,
+        "segmentation_boundary": 0.1606,
+        "shadow": 0.0901,
+        "occlusion": 0.1071,
+        "terrain": 0.0535,
+        "structural_plausibility": 0.0535
+      }
+    },
+    "obj_006": {
+      "candidate_id": "H0048",
+      "height_value": 7.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "overall_score": 0.331,
+      "component_scores": {
+        "depth_agreement": 0.3727,
+        "edge_overlap": 0.0,
+        "segmentation_boundary": 0.0272,
+        "shadow": 0.4,
+        "occlusion": 0.8542,
+        "terrain": 0.9642,
+        "structural_plausibility": 0.8936
+      },
+      "active_evidence": [
+        "depth_agreement",
+        "edge_overlap",
+        "segmentation_boundary",
+        "shadow",
+        "occlusion",
+        "terrain",
+        "structural_plausibility"
+      ],
+      "weights": {
+        "depth_agreement": 0.2676,
+        "edge_overlap": 0.2676,
+        "segmentation_boundary": 0.1606,
+        "shadow": 0.0901,
+        "occlusion": 0.1071,
+        "terrain": 0.0535,
+        "structural_plausibility": 0.0535
+      }
+    },
+    "obj_000": {
+      "candidate_id": "H0005",
+      "height_value": 10.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "overall_score": 0.2991,
+      "component_scores": {
+        "depth_agreement": 0.0498,
+        "edge_overlap": 0.0856,
+        "segmentation_boundary": 0.1778,
+        "shadow": 0.7762,
+        "occlusion": 0.8892,
+        "terrain": 0.332,
+        "structural_plausibility": 0.9603
+      },
+      "active_evidence": [
+        "depth_agreement",
+        "edge_overlap",
+        "segmentation_boundary",
+        "shadow",
+        "occlusion",
+        "terrain",
+        "structural_plausibility"
+      ],
+      "weights": {
+        "depth_agreement": 0.2676,
+        "edge_overlap": 0.2676,
+        "segmentation_boundary": 0.1606,
+        "shadow": 0.0901,
+        "occlusion": 0.1071,
+        "terrain": 0.0535,
+        "structural_plausibility": 0.0535
+      }
+    }
+  },
+  "candidates_table": [
+    {
+      "candidate_id": "H0000",
+      "object_id": "obj_000",
+      "height_value": 3.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.2733,
+      "component_scores": {
+        "depth_agreement": 0.0041,
+        "edge_overlap": 0.0646,
+        "segmentation_boundary": 0.1341,
+        "shadow": 0.6499,
+        "occlusion": 0.8017,
+        "terrain": 0.9139,
+        "structural_plausibility": 0.7498
+      }
+    },
+    {
+      "candidate_id": "H0001",
+      "object_id": "obj_000",
+      "height_value": 4.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.2795,
+      "component_scores": {
+        "depth_agreement": 0.0091,
+        "edge_overlap": 0.0688,
+        "segmentation_boundary": 0.1429,
+        "shadow": 0.6813,
+        "occlusion": 0.8192,
+        "terrain": 0.8167,
+        "structural_plausibility": 0.8021
+      }
+    },
+    {
+      "candidate_id": "H0002",
+      "object_id": "obj_000",
+      "height_value": 6.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.2846,
+      "component_scores": {
+        "depth_agreement": 0.0163,
+        "edge_overlap": 0.073,
+        "segmentation_boundary": 0.1516,
+        "shadow": 0.7103,
+        "occlusion": 0.8367,
+        "terrain": 0.6977,
+        "structural_plausibility": 0.8504
+      }
+    },
+    {
+      "candidate_id": "H0003",
+      "object_id": "obj_000",
+      "height_value": 7.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.2893,
+      "component_scores": {
+        "depth_agreement": 0.0254,
+        "edge_overlap": 0.0772,
+        "segmentation_boundary": 0.1603,
+        "shadow": 0.7362,
+        "occlusion": 0.8542,
+        "terrain": 0.5698,
+        "structural_plausibility": 0.8936
+      }
+    },
+    {
+      "candidate_id": "H0004",
+      "object_id": "obj_000",
+      "height_value": 9.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.294,
+      "component_scores": {
+        "depth_agreement": 0.0366,
+        "edge_overlap": 0.0814,
+        "segmentation_boundary": 0.1691,
+        "shadow": 0.7583,
+        "occlusion": 0.8717,
+        "terrain": 0.4449,
+        "structural_plausibility": 0.9305
+      }
+    },
+    {
+      "candidate_id": "H0005",
+      "object_id": "obj_000",
+      "height_value": 10.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "SURVIVED",
+      "overall_score": 0.2991,
+      "component_scores": {
+        "depth_agreement": 0.0498,
+        "edge_overlap": 0.0856,
+        "segmentation_boundary": 0.1778,
+        "shadow": 0.7762,
+        "occlusion": 0.8892,
+        "terrain": 0.332,
+        "structural_plausibility": 0.9603
+      }
+    },
+    {
+      "candidate_id": "H0006",
+      "object_id": "obj_001",
+      "height_value": 3.24,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3355,
+      "component_scores": {
+        "depth_agreement": 0.0015,
+        "edge_overlap": 0.2487,
+        "segmentation_boundary": 0.2155,
+        "shadow": 0.655,
+        "occlusion": 0.8045,
+        "terrain": 0.9004,
+        "structural_plausibility": 0.7583
+      }
+    },
+    {
+      "candidate_id": "H0007",
+      "object_id": "obj_001",
+      "height_value": 4.86,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3451,
+      "component_scores": {
+        "depth_agreement": 0.0034,
+        "edge_overlap": 0.2661,
+        "segmentation_boundary": 0.2305,
+        "shadow": 0.6885,
+        "occlusion": 0.8234,
+        "terrain": 0.7897,
+        "structural_plausibility": 0.8141
+      }
+    },
+    {
+      "candidate_id": "H0008",
+      "object_id": "obj_001",
+      "height_value": 6.48,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3533,
+      "component_scores": {
+        "depth_agreement": 0.006,
+        "edge_overlap": 0.2834,
+        "segmentation_boundary": 0.2455,
+        "shadow": 0.7189,
+        "occlusion": 0.8423,
+        "terrain": 0.6572,
+        "structural_plausibility": 0.8648
+      }
+    },
+    {
+      "candidate_id": "H0009",
+      "object_id": "obj_001",
+      "height_value": 8.1,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3606,
+      "component_scores": {
+        "depth_agreement": 0.0094,
+        "edge_overlap": 0.3007,
+        "segmentation_boundary": 0.2605,
+        "shadow": 0.7455,
+        "occlusion": 0.8612,
+        "terrain": 0.5189,
+        "structural_plausibility": 0.9092
+      }
+    },
+    {
+      "candidate_id": "H0010",
+      "object_id": "obj_001",
+      "height_value": 9.72,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3678,
+      "component_scores": {
+        "depth_agreement": 0.0136,
+        "edge_overlap": 0.3181,
+        "segmentation_boundary": 0.2755,
+        "shadow": 0.7674,
+        "occlusion": 0.8801,
+        "terrain": 0.3888,
+        "structural_plausibility": 0.9457
+      }
+    },
+    {
+      "candidate_id": "H0011",
+      "object_id": "obj_001",
+      "height_value": 11.34,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3751,
+      "component_scores": {
+        "depth_agreement": 0.0185,
+        "edge_overlap": 0.3354,
+        "segmentation_boundary": 0.2906,
+        "shadow": 0.7841,
+        "occlusion": 0.899,
+        "terrain": 0.2765,
+        "structural_plausibility": 0.9735
+      }
+    },
+    {
+      "candidate_id": "H0012",
+      "object_id": "obj_001",
+      "height_value": 12.96,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3829,
+      "component_scores": {
+        "depth_agreement": 0.0241,
+        "edge_overlap": 0.3527,
+        "segmentation_boundary": 0.3056,
+        "shadow": 0.795,
+        "occlusion": 0.9179,
+        "terrain": 0.1865,
+        "structural_plausibility": 0.9917
+      }
+    },
+    {
+      "candidate_id": "H0013",
+      "object_id": "obj_001",
+      "height_value": 14.58,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3909,
+      "component_scores": {
+        "depth_agreement": 0.0306,
+        "edge_overlap": 0.3701,
+        "segmentation_boundary": 0.3206,
+        "shadow": 0.7998,
+        "occlusion": 0.9367,
+        "terrain": 0.1194,
+        "structural_plausibility": 0.9996
+      }
+    },
+    {
+      "candidate_id": "H0014",
+      "object_id": "obj_001",
+      "height_value": 16.2,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "SURVIVED",
+      "overall_score": 0.3991,
+      "component_scores": {
+        "depth_agreement": 0.0377,
+        "edge_overlap": 0.3874,
+        "segmentation_boundary": 0.3356,
+        "shadow": 0.7983,
+        "occlusion": 0.9556,
+        "terrain": 0.0725,
+        "structural_plausibility": 0.9971
+      }
+    },
+    {
+      "candidate_id": "H0015",
+      "object_id": "obj_002",
+      "height_value": 3.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3983,
+      "component_scores": {
+        "depth_agreement": 0.0015,
+        "edge_overlap": 0.2695,
+        "segmentation_boundary": 0.575,
+        "shadow": 0.6499,
+        "occlusion": 0.8017,
+        "terrain": 0.9139,
+        "structural_plausibility": 0.7498
+      }
+    },
+    {
+      "candidate_id": "H0016",
+      "object_id": "obj_002",
+      "height_value": 4.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4118,
+      "component_scores": {
+        "depth_agreement": 0.0034,
+        "edge_overlap": 0.2871,
+        "segmentation_boundary": 0.6125,
+        "shadow": 0.6813,
+        "occlusion": 0.8192,
+        "terrain": 0.8167,
+        "structural_plausibility": 0.8021
+      }
+    },
+    {
+      "candidate_id": "H0017",
+      "object_id": "obj_002",
+      "height_value": 6.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4239,
+      "component_scores": {
+        "depth_agreement": 0.0061,
+        "edge_overlap": 0.3047,
+        "segmentation_boundary": 0.65,
+        "shadow": 0.7103,
+        "occlusion": 0.8367,
+        "terrain": 0.6977,
+        "structural_plausibility": 0.8504
+      }
+    },
+    {
+      "candidate_id": "H0018",
+      "object_id": "obj_002",
+      "height_value": 7.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4352,
+      "component_scores": {
+        "depth_agreement": 0.0095,
+        "edge_overlap": 0.3223,
+        "segmentation_boundary": 0.6875,
+        "shadow": 0.7362,
+        "occlusion": 0.8542,
+        "terrain": 0.5698,
+        "structural_plausibility": 0.8936
+      }
+    },
+    {
+      "candidate_id": "H0019",
+      "object_id": "obj_002",
+      "height_value": 9.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4462,
+      "component_scores": {
+        "depth_agreement": 0.0136,
+        "edge_overlap": 0.3398,
+        "segmentation_boundary": 0.725,
+        "shadow": 0.7583,
+        "occlusion": 0.8717,
+        "terrain": 0.4449,
+        "structural_plausibility": 0.9305
+      }
+    },
+    {
+      "candidate_id": "H0020",
+      "object_id": "obj_002",
+      "height_value": 10.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4573,
+      "component_scores": {
+        "depth_agreement": 0.0185,
+        "edge_overlap": 0.3574,
+        "segmentation_boundary": 0.7625,
+        "shadow": 0.7762,
+        "occlusion": 0.8892,
+        "terrain": 0.332,
+        "structural_plausibility": 0.9603
+      }
+    },
+    {
+      "candidate_id": "H0021",
+      "object_id": "obj_002",
+      "height_value": 12.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4687,
+      "component_scores": {
+        "depth_agreement": 0.0242,
+        "edge_overlap": 0.375,
+        "segmentation_boundary": 0.8,
+        "shadow": 0.7893,
+        "occlusion": 0.9067,
+        "terrain": 0.2369,
+        "structural_plausibility": 0.9822
+      }
+    },
+    {
+      "candidate_id": "H0022",
+      "object_id": "obj_002",
+      "height_value": 13.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "SURVIVED",
+      "overall_score": 0.4804,
+      "component_scores": {
+        "depth_agreement": 0.0307,
+        "edge_overlap": 0.3926,
+        "segmentation_boundary": 0.8375,
+        "shadow": 0.7973,
+        "occlusion": 0.9242,
+        "terrain": 0.1616,
+        "structural_plausibility": 0.9955
+      }
+    },
+    {
+      "candidate_id": "H0023",
+      "object_id": "obj_003",
+      "height_value": 4.76,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3212,
+      "component_scores": {
+        "depth_agreement": 0.0337,
+        "edge_overlap": 0.297,
+        "segmentation_boundary": 0.0591,
+        "shadow": 0.4,
+        "occlusion": 0.9445,
+        "terrain": 0.7974,
+        "structural_plausibility": 0.8108
+      }
+    },
+    {
+      "candidate_id": "H0024",
+      "object_id": "obj_003",
+      "height_value": 7.14,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3314,
+      "component_scores": {
+        "depth_agreement": 0.0758,
+        "edge_overlap": 0.3255,
+        "segmentation_boundary": 0.0648,
+        "shadow": 0.4,
+        "occlusion": 0.9167,
+        "terrain": 0.6008,
+        "structural_plausibility": 0.8837
+      }
+    },
+    {
+      "candidate_id": "H0025",
+      "object_id": "obj_003",
+      "height_value": 9.52,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3454,
+      "component_scores": {
+        "depth_agreement": 0.1348,
+        "edge_overlap": 0.3541,
+        "segmentation_boundary": 0.0705,
+        "shadow": 0.4,
+        "occlusion": 0.889,
+        "terrain": 0.4042,
+        "structural_plausibility": 0.9416
+      }
+    },
+    {
+      "candidate_id": "H0026",
+      "object_id": "obj_003",
+      "height_value": 11.9,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3647,
+      "component_scores": {
+        "depth_agreement": 0.2106,
+        "edge_overlap": 0.3826,
+        "segmentation_boundary": 0.0762,
+        "shadow": 0.4,
+        "occlusion": 0.8612,
+        "terrain": 0.2429,
+        "structural_plausibility": 0.9809
+      }
+    },
+    {
+      "candidate_id": "H0027",
+      "object_id": "obj_003",
+      "height_value": 14.28,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.39,
+      "component_scores": {
+        "depth_agreement": 0.3032,
+        "edge_overlap": 0.4112,
+        "segmentation_boundary": 0.0819,
+        "shadow": 0.4,
+        "occlusion": 0.8335,
+        "terrain": 0.1303,
+        "structural_plausibility": 0.999
+      }
+    },
+    {
+      "candidate_id": "H0028",
+      "object_id": "obj_003",
+      "height_value": 16.65,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.421,
+      "component_scores": {
+        "depth_agreement": 0.4127,
+        "edge_overlap": 0.4397,
+        "segmentation_boundary": 0.0875,
+        "shadow": 0.4,
+        "occlusion": 0.8057,
+        "terrain": 0.0624,
+        "structural_plausibility": 0.9945
+      }
+    },
+    {
+      "candidate_id": "H0029",
+      "object_id": "obj_003",
+      "height_value": 19.03,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4571,
+      "component_scores": {
+        "depth_agreement": 0.539,
+        "edge_overlap": 0.4683,
+        "segmentation_boundary": 0.0932,
+        "shadow": 0.4,
+        "occlusion": 0.7779,
+        "terrain": 0.0267,
+        "structural_plausibility": 0.968
+      }
+    },
+    {
+      "candidate_id": "H0030",
+      "object_id": "obj_003",
+      "height_value": 21.41,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4925,
+      "component_scores": {
+        "depth_agreement": 0.6822,
+        "edge_overlap": 0.4798,
+        "segmentation_boundary": 0.0955,
+        "shadow": 0.4,
+        "occlusion": 0.7502,
+        "terrain": 0.0102,
+        "structural_plausibility": 0.921
+      }
+    },
+    {
+      "candidate_id": "H0031",
+      "object_id": "obj_003",
+      "height_value": 23.79,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "SURVIVED",
+      "overall_score": 0.5286,
+      "component_scores": {
+        "depth_agreement": 0.8422,
+        "edge_overlap": 0.4798,
+        "segmentation_boundary": 0.0955,
+        "shadow": 0.4,
+        "occlusion": 0.7224,
+        "terrain": 0.0035,
+        "structural_plausibility": 0.8567
+      }
+    },
+    {
+      "candidate_id": "H0032",
+      "object_id": "obj_004",
+      "height_value": 3.43,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.2937,
+      "component_scores": {
+        "depth_agreement": 0.0117,
+        "edge_overlap": 0.108,
+        "segmentation_boundary": 0.3159,
+        "shadow": 0.4,
+        "occlusion": 0.8067,
+        "terrain": 0.8887,
+        "structural_plausibility": 0.7653
+      }
+    },
+    {
+      "candidate_id": "H0033",
+      "object_id": "obj_004",
+      "height_value": 5.15,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3022,
+      "component_scores": {
+        "depth_agreement": 0.0264,
+        "edge_overlap": 0.1159,
+        "segmentation_boundary": 0.339,
+        "shadow": 0.4,
+        "occlusion": 0.8268,
+        "terrain": 0.7669,
+        "structural_plausibility": 0.8237
+      }
+    },
+    {
+      "candidate_id": "H0034",
+      "object_id": "obj_004",
+      "height_value": 6.87,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3108,
+      "component_scores": {
+        "depth_agreement": 0.0469,
+        "edge_overlap": 0.1238,
+        "segmentation_boundary": 0.3622,
+        "shadow": 0.4,
+        "occlusion": 0.8468,
+        "terrain": 0.6238,
+        "structural_plausibility": 0.8762
+      }
+    },
+    {
+      "candidate_id": "H0035",
+      "object_id": "obj_004",
+      "height_value": 8.59,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3205,
+      "component_scores": {
+        "depth_agreement": 0.0732,
+        "edge_overlap": 0.1318,
+        "segmentation_boundary": 0.3853,
+        "shadow": 0.4,
+        "occlusion": 0.8668,
+        "terrain": 0.4784,
+        "structural_plausibility": 0.921
+      }
+    },
+    {
+      "candidate_id": "H0036",
+      "object_id": "obj_004",
+      "height_value": 10.3,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3319,
+      "component_scores": {
+        "depth_agreement": 0.1055,
+        "edge_overlap": 0.1397,
+        "segmentation_boundary": 0.4085,
+        "shadow": 0.4,
+        "occlusion": 0.8869,
+        "terrain": 0.3459,
+        "structural_plausibility": 0.9569
+      }
+    },
+    {
+      "candidate_id": "H0037",
+      "object_id": "obj_004",
+      "height_value": 12.02,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3455,
+      "component_scores": {
+        "depth_agreement": 0.1435,
+        "edge_overlap": 0.1476,
+        "segmentation_boundary": 0.4316,
+        "shadow": 0.4,
+        "occlusion": 0.9069,
+        "terrain": 0.2357,
+        "structural_plausibility": 0.9824
+      }
+    },
+    {
+      "candidate_id": "H0038",
+      "object_id": "obj_004",
+      "height_value": 13.74,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3615,
+      "component_scores": {
+        "depth_agreement": 0.1875,
+        "edge_overlap": 0.1555,
+        "segmentation_boundary": 0.4548,
+        "shadow": 0.4,
+        "occlusion": 0.927,
+        "terrain": 0.1515,
+        "structural_plausibility": 0.9968
+      }
+    },
+    {
+      "candidate_id": "H0039",
+      "object_id": "obj_004",
+      "height_value": 15.46,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3798,
+      "component_scores": {
+        "depth_agreement": 0.2373,
+        "edge_overlap": 0.1634,
+        "segmentation_boundary": 0.4779,
+        "shadow": 0.4,
+        "occlusion": 0.947,
+        "terrain": 0.0917,
+        "structural_plausibility": 0.9996
+      }
+    },
+    {
+      "candidate_id": "H0040",
+      "object_id": "obj_004",
+      "height_value": 17.17,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "SURVIVED",
+      "overall_score": 0.4001,
+      "component_scores": {
+        "depth_agreement": 0.293,
+        "edge_overlap": 0.1713,
+        "segmentation_boundary": 0.5011,
+        "shadow": 0.4,
+        "occlusion": 0.967,
+        "terrain": 0.0524,
+        "structural_plausibility": 0.9906
+      }
+    },
+    {
+      "candidate_id": "H0041",
+      "object_id": "obj_005",
+      "height_value": 3.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.3697,
+      "component_scores": {
+        "depth_agreement": 0.0818,
+        "edge_overlap": 0.0826,
+        "segmentation_boundary": 0.575,
+        "shadow": 0.6499,
+        "occlusion": 0.8017,
+        "terrain": 0.9139,
+        "structural_plausibility": 0.7498
+      }
+    },
+    {
+      "candidate_id": "H0042",
+      "object_id": "obj_005",
+      "height_value": 4.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4069,
+      "component_scores": {
+        "depth_agreement": 0.184,
+        "edge_overlap": 0.088,
+        "segmentation_boundary": 0.6125,
+        "shadow": 0.6813,
+        "occlusion": 0.8192,
+        "terrain": 0.8167,
+        "structural_plausibility": 0.8021
+      }
+    },
+    {
+      "candidate_id": "H0043",
+      "object_id": "obj_005",
+      "height_value": 6.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4533,
+      "component_scores": {
+        "depth_agreement": 0.3271,
+        "edge_overlap": 0.0934,
+        "segmentation_boundary": 0.65,
+        "shadow": 0.7103,
+        "occlusion": 0.8367,
+        "terrain": 0.6977,
+        "structural_plausibility": 0.8504
+      }
+    },
+    {
+      "candidate_id": "H0044",
+      "object_id": "obj_005",
+      "height_value": 7.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "SURVIVED",
+      "overall_score": 0.5097,
+      "component_scores": {
+        "depth_agreement": 0.5111,
+        "edge_overlap": 0.0988,
+        "segmentation_boundary": 0.6875,
+        "shadow": 0.7362,
+        "occlusion": 0.8542,
+        "terrain": 0.5698,
+        "structural_plausibility": 0.8936
+      }
+    },
+    {
+      "candidate_id": "H0045",
+      "object_id": "obj_006",
+      "height_value": 3.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.2316,
+      "component_scores": {
+        "depth_agreement": 0.0596,
+        "edge_overlap": 0.0,
+        "segmentation_boundary": 0.0227,
+        "shadow": 0.4,
+        "occlusion": 0.8017,
+        "terrain": 0.9351,
+        "structural_plausibility": 0.7498
+      }
+    },
+    {
+      "candidate_id": "H0046",
+      "object_id": "obj_006",
+      "height_value": 4.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.2593,
+      "component_scores": {
+        "depth_agreement": 0.1342,
+        "edge_overlap": 0.0,
+        "segmentation_boundary": 0.0242,
+        "shadow": 0.4,
+        "occlusion": 0.8192,
+        "terrain": 0.9882,
+        "structural_plausibility": 0.8021
+      }
+    },
+    {
+      "candidate_id": "H0047",
+      "object_id": "obj_006",
+      "height_value": 6.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.2925,
+      "component_scores": {
+        "depth_agreement": 0.2385,
+        "edge_overlap": 0.0,
+        "segmentation_boundary": 0.0257,
+        "shadow": 0.4,
+        "occlusion": 0.8367,
+        "terrain": 0.9983,
+        "structural_plausibility": 0.8504
+      }
+    },
+    {
+      "candidate_id": "H0048",
+      "object_id": "obj_006",
+      "height_value": 7.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "SURVIVED",
+      "overall_score": 0.331,
+      "component_scores": {
+        "depth_agreement": 0.3727,
+        "edge_overlap": 0.0,
+        "segmentation_boundary": 0.0272,
+        "shadow": 0.4,
+        "occlusion": 0.8542,
+        "terrain": 0.9642,
+        "structural_plausibility": 0.8936
+      }
+    },
+    {
+      "candidate_id": "H0049",
+      "object_id": "obj_007",
+      "height_value": 3.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.5108,
+      "component_scores": {
+        "depth_agreement": 0.5787,
+        "edge_overlap": 0.1,
+        "segmentation_boundary": 0.575,
+        "shadow": 0.6499,
+        "occlusion": 0.8017,
+        "terrain": 0.9775,
+        "structural_plausibility": 0.7498
+      }
+    },
+    {
+      "candidate_id": "H0050",
+      "object_id": "obj_007",
+      "height_value": 4.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "SURVIVED",
+      "overall_score": 0.5733,
+      "component_scores": {
+        "depth_agreement": 0.768,
+        "edge_overlap": 0.1065,
+        "segmentation_boundary": 0.6125,
+        "shadow": 0.6813,
+        "occlusion": 0.8192,
+        "terrain": 0.9134,
+        "structural_plausibility": 0.8021
+      }
+    },
+    {
+      "candidate_id": "H0051",
+      "object_id": "obj_007",
+      "height_value": 6.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.493,
+      "component_scores": {
+        "depth_agreement": 0.432,
+        "edge_overlap": 0.113,
+        "segmentation_boundary": 0.65,
+        "shadow": 0.7103,
+        "occlusion": 0.8367,
+        "terrain": 0.8159,
+        "structural_plausibility": 0.8504
+      }
+    },
+    {
+      "candidate_id": "H0052",
+      "object_id": "obj_007",
+      "height_value": 7.5,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4593,
+      "component_scores": {
+        "depth_agreement": 0.2765,
+        "edge_overlap": 0.1196,
+        "segmentation_boundary": 0.6875,
+        "shadow": 0.7362,
+        "occlusion": 0.8542,
+        "terrain": 0.6968,
+        "structural_plausibility": 0.8936
+      }
+    },
+    {
+      "candidate_id": "H0053",
+      "object_id": "obj_007",
+      "height_value": 9.0,
+      "height_unit": "RELATIVE_DEPTH_UNITS",
+      "status": "REJECTED",
+      "overall_score": 0.4434,
+      "component_scores": {
+        "depth_agreement": 0.192,
+        "edge_overlap": 0.1261,
+        "segmentation_boundary": 0.725,
+        "shadow": 0.7583,
+        "occlusion": 0.8717,
+        "terrain": 0.5689,
+        "structural_plausibility": 0.9305
+      }
+    }
+  ],
+  "uncertainty": [
+    {
+      "candidate_id": "H0000",
+      "object_id": "obj_000",
+      "height_value": 3.0,
+      "nominal_score": 0.2733,
+      "mean_score": 0.2747,
+      "std_score": 0.003,
+      "p05": 0.2727,
+      "p95": 0.2804,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0001",
+      "object_id": "obj_000",
+      "height_value": 4.5,
+      "nominal_score": 0.2795,
+      "mean_score": 0.2827,
+      "std_score": 0.0067,
+      "p05": 0.2782,
+      "p95": 0.2956,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0002",
+      "object_id": "obj_000",
+      "height_value": 6.0,
+      "nominal_score": 0.2846,
+      "mean_score": 0.2904,
+      "std_score": 0.012,
+      "p05": 0.2824,
+      "p95": 0.3132,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0003",
+      "object_id": "obj_000",
+      "height_value": 7.5,
+      "nominal_score": 0.2893,
+      "mean_score": 0.2982,
+      "std_score": 0.0187,
+      "p05": 0.2857,
+      "p95": 0.3339,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0004",
+      "object_id": "obj_000",
+      "height_value": 9.0,
+      "nominal_score": 0.294,
+      "mean_score": 0.3068,
+      "std_score": 0.0269,
+      "p05": 0.2889,
+      "p95": 0.3583,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0005",
+      "object_id": "obj_000",
+      "height_value": 10.5,
+      "nominal_score": 0.2991,
+      "mean_score": 0.3166,
+      "std_score": 0.0366,
+      "p05": 0.2921,
+      "p95": 0.3866,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0006",
+      "object_id": "obj_001",
+      "height_value": 3.24,
+      "nominal_score": 0.3355,
+      "mean_score": 0.3355,
+      "std_score": 0.0001,
+      "p05": 0.3353,
+      "p95": 0.3357,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0007",
+      "object_id": "obj_001",
+      "height_value": 4.86,
+      "nominal_score": 0.3451,
+      "mean_score": 0.3452,
+      "std_score": 0.0003,
+      "p05": 0.3448,
+      "p95": 0.3456,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0008",
+      "object_id": "obj_001",
+      "height_value": 6.48,
+      "nominal_score": 0.3533,
+      "mean_score": 0.3534,
+      "std_score": 0.0005,
+      "p05": 0.3528,
+      "p95": 0.3541,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0009",
+      "object_id": "obj_001",
+      "height_value": 8.1,
+      "nominal_score": 0.3606,
+      "mean_score": 0.3608,
+      "std_score": 0.0007,
+      "p05": 0.3598,
+      "p95": 0.3619,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0010",
+      "object_id": "obj_001",
+      "height_value": 9.72,
+      "nominal_score": 0.3678,
+      "mean_score": 0.368,
+      "std_score": 0.0011,
+      "p05": 0.3666,
+      "p95": 0.3696,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0011",
+      "object_id": "obj_001",
+      "height_value": 11.34,
+      "nominal_score": 0.3751,
+      "mean_score": 0.3754,
+      "std_score": 0.0015,
+      "p05": 0.3736,
+      "p95": 0.3776,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0012",
+      "object_id": "obj_001",
+      "height_value": 12.96,
+      "nominal_score": 0.3829,
+      "mean_score": 0.3832,
+      "std_score": 0.0019,
+      "p05": 0.3809,
+      "p95": 0.3861,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0013",
+      "object_id": "obj_001",
+      "height_value": 14.58,
+      "nominal_score": 0.3909,
+      "mean_score": 0.3914,
+      "std_score": 0.0024,
+      "p05": 0.3884,
+      "p95": 0.395,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0014",
+      "object_id": "obj_001",
+      "height_value": 16.2,
+      "nominal_score": 0.3991,
+      "mean_score": 0.3997,
+      "std_score": 0.003,
+      "p05": 0.396,
+      "p95": 0.4042,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0015",
+      "object_id": "obj_002",
+      "height_value": 3.0,
+      "nominal_score": 0.3983,
+      "mean_score": 0.3983,
+      "std_score": 0.0002,
+      "p05": 0.3981,
+      "p95": 0.3986,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0016",
+      "object_id": "obj_002",
+      "height_value": 4.5,
+      "nominal_score": 0.4118,
+      "mean_score": 0.4118,
+      "std_score": 0.0004,
+      "p05": 0.4114,
+      "p95": 0.4126,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0017",
+      "object_id": "obj_002",
+      "height_value": 6.0,
+      "nominal_score": 0.4239,
+      "mean_score": 0.424,
+      "std_score": 0.0008,
+      "p05": 0.4232,
+      "p95": 0.4254,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0018",
+      "object_id": "obj_002",
+      "height_value": 7.5,
+      "nominal_score": 0.4352,
+      "mean_score": 0.4353,
+      "std_score": 0.0012,
+      "p05": 0.434,
+      "p95": 0.4375,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0019",
+      "object_id": "obj_002",
+      "height_value": 9.0,
+      "nominal_score": 0.4462,
+      "mean_score": 0.4463,
+      "std_score": 0.0018,
+      "p05": 0.4445,
+      "p95": 0.4494,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0020",
+      "object_id": "obj_002",
+      "height_value": 10.5,
+      "nominal_score": 0.4573,
+      "mean_score": 0.4574,
+      "std_score": 0.0024,
+      "p05": 0.4549,
+      "p95": 0.4617,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0021",
+      "object_id": "obj_002",
+      "height_value": 12.0,
+      "nominal_score": 0.4687,
+      "mean_score": 0.4688,
+      "std_score": 0.0032,
+      "p05": 0.4656,
+      "p95": 0.4744,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0022",
+      "object_id": "obj_002",
+      "height_value": 13.5,
+      "nominal_score": 0.4804,
+      "mean_score": 0.4806,
+      "std_score": 0.004,
+      "p05": 0.4765,
+      "p95": 0.4876,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0023",
+      "object_id": "obj_003",
+      "height_value": 4.76,
+      "nominal_score": 0.3212,
+      "mean_score": 0.3433,
+      "std_score": 0.0489,
+      "p05": 0.3147,
+      "p95": 0.4415,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0024",
+      "object_id": "obj_003",
+      "height_value": 7.14,
+      "nominal_score": 0.3314,
+      "mean_score": 0.3513,
+      "std_score": 0.0638,
+      "p05": 0.3167,
+      "p95": 0.4596,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0025",
+      "object_id": "obj_003",
+      "height_value": 9.52,
+      "nominal_score": 0.3454,
+      "mean_score": 0.3468,
+      "std_score": 0.0326,
+      "p05": 0.3192,
+      "p95": 0.4044,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0026",
+      "object_id": "obj_003",
+      "height_value": 11.9,
+      "nominal_score": 0.3647,
+      "mean_score": 0.3524,
+      "std_score": 0.0241,
+      "p05": 0.3232,
+      "p95": 0.3923,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0027",
+      "object_id": "obj_003",
+      "height_value": 14.28,
+      "nominal_score": 0.39,
+      "mean_score": 0.3648,
+      "std_score": 0.0312,
+      "p05": 0.3236,
+      "p95": 0.4127,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0028",
+      "object_id": "obj_003",
+      "height_value": 16.65,
+      "nominal_score": 0.421,
+      "mean_score": 0.3824,
+      "std_score": 0.0447,
+      "p05": 0.3261,
+      "p95": 0.4519,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0029",
+      "object_id": "obj_003",
+      "height_value": 19.03,
+      "nominal_score": 0.4571,
+      "mean_score": 0.4038,
+      "std_score": 0.061,
+      "p05": 0.3303,
+      "p95": 0.4974,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0030",
+      "object_id": "obj_003",
+      "height_value": 21.41,
+      "nominal_score": 0.4925,
+      "mean_score": 0.4214,
+      "std_score": 0.0755,
+      "p05": 0.3245,
+      "p95": 0.5333,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0031",
+      "object_id": "obj_003",
+      "height_value": 23.79,
+      "nominal_score": 0.5286,
+      "mean_score": 0.4284,
+      "std_score": 0.0779,
+      "p05": 0.3149,
+      "p95": 0.5199,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0032",
+      "object_id": "obj_004",
+      "height_value": 3.43,
+      "nominal_score": 0.2937,
+      "mean_score": 0.2971,
+      "std_score": 0.0089,
+      "p05": 0.2912,
+      "p95": 0.3149,
+      "confidence_label": "HIGH"
+    },
+    {
+      "candidate_id": "H0033",
+      "object_id": "obj_004",
+      "height_value": 5.15,
+      "nominal_score": 0.3022,
+      "mean_score": 0.3098,
+      "std_score": 0.0201,
+      "p05": 0.2967,
+      "p95": 0.3499,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0034",
+      "object_id": "obj_004",
+      "height_value": 6.87,
+      "nominal_score": 0.3108,
+      "mean_score": 0.3243,
+      "std_score": 0.0357,
+      "p05": 0.301,
+      "p95": 0.3956,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0035",
+      "object_id": "obj_004",
+      "height_value": 8.59,
+      "nominal_score": 0.3205,
+      "mean_score": 0.3415,
+      "std_score": 0.0558,
+      "p05": 0.3052,
+      "p95": 0.453,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0036",
+      "object_id": "obj_004",
+      "height_value": 10.3,
+      "nominal_score": 0.3319,
+      "mean_score": 0.3622,
+      "std_score": 0.0804,
+      "p05": 0.3099,
+      "p95": 0.5228,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0037",
+      "object_id": "obj_004",
+      "height_value": 12.02,
+      "nominal_score": 0.3455,
+      "mean_score": 0.3764,
+      "std_score": 0.0886,
+      "p05": 0.3156,
+      "p95": 0.5527,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0038",
+      "object_id": "obj_004",
+      "height_value": 13.74,
+      "nominal_score": 0.3615,
+      "mean_score": 0.3754,
+      "std_score": 0.064,
+      "p05": 0.3224,
+      "p95": 0.4994,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0039",
+      "object_id": "obj_004",
+      "height_value": 15.46,
+      "nominal_score": 0.3798,
+      "mean_score": 0.3797,
+      "std_score": 0.0476,
+      "p05": 0.3302,
+      "p95": 0.4649,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0040",
+      "object_id": "obj_004",
+      "height_value": 17.17,
+      "nominal_score": 0.4001,
+      "mean_score": 0.3874,
+      "std_score": 0.0382,
+      "p05": 0.3389,
+      "p95": 0.442,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0041",
+      "object_id": "obj_005",
+      "height_value": 3.0,
+      "nominal_score": 0.3697,
+      "mean_score": 0.3843,
+      "std_score": 0.0459,
+      "p05": 0.3495,
+      "p95": 0.4655,
+      "confidence_label": "MEDIUM"
+    },
+    {
+      "candidate_id": "H0042",
+      "object_id": "obj_005",
+      "height_value": 4.5,
+      "nominal_score": 0.4069,
+      "mean_score": 0.431,
+      "std_score": 0.0869,
+      "p05": 0.3597,
+      "p95": 0.5772,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0043",
+      "object_id": "obj_005",
+      "height_value": 6.0,
+      "nominal_score": 0.4533,
+      "mean_score": 0.4434,
+      "std_score": 0.078,
+      "p05": 0.3688,
+      "p95": 0.5816,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0044",
+      "object_id": "obj_005",
+      "height_value": 7.5,
+      "nominal_score": 0.5097,
+      "mean_score": 0.4427,
+      "std_score": 0.0504,
+      "p05": 0.3773,
+      "p95": 0.511,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0045",
+      "object_id": "obj_006",
+      "height_value": 3.0,
+      "nominal_score": 0.2316,
+      "mean_score": 0.2493,
+      "std_score": 0.0462,
+      "p05": 0.2182,
+      "p95": 0.3407,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0046",
+      "object_id": "obj_006",
+      "height_value": 4.5,
+      "nominal_score": 0.2593,
+      "mean_score": 0.2748,
+      "std_score": 0.0716,
+      "p05": 0.229,
+      "p95": 0.394,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0047",
+      "object_id": "obj_006",
+      "height_value": 6.0,
+      "nominal_score": 0.2925,
+      "mean_score": 0.2828,
+      "std_score": 0.047,
+      "p05": 0.2386,
+      "p95": 0.3671,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0048",
+      "object_id": "obj_006",
+      "height_value": 7.5,
+      "nominal_score": 0.331,
+      "mean_score": 0.2982,
+      "std_score": 0.0531,
+      "p05": 0.2469,
+      "p95": 0.3848,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0049",
+      "object_id": "obj_007",
+      "height_value": 3.0,
+      "nominal_score": 0.5108,
+      "mean_score": 0.4174,
+      "std_score": 0.0756,
+      "p05": 0.3636,
+      "p95": 0.5644,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0050",
+      "object_id": "obj_007",
+      "height_value": 4.5,
+      "nominal_score": 0.5733,
+      "mean_score": 0.4305,
+      "std_score": 0.0514,
+      "p05": 0.3851,
+      "p95": 0.5213,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0051",
+      "object_id": "obj_007",
+      "height_value": 6.0,
+      "nominal_score": 0.493,
+      "mean_score": 0.448,
+      "std_score": 0.047,
+      "p05": 0.4008,
+      "p95": 0.5218,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0052",
+      "object_id": "obj_007",
+      "height_value": 7.5,
+      "nominal_score": 0.4593,
+      "mean_score": 0.4733,
+      "std_score": 0.0643,
+      "p05": 0.413,
+      "p95": 0.5843,
+      "confidence_label": "LOW"
+    },
+    {
+      "candidate_id": "H0053",
+      "object_id": "obj_007",
+      "height_value": 9.0,
+      "nominal_score": 0.4434,
+      "mean_score": 0.4915,
+      "std_score": 0.0651,
+      "p05": 0.4131,
+      "p95": 0.5912,
+      "confidence_label": "LOW"
+    }
+  ],
+  "height_fingerprint": {
+    "obj_000": {
+      "heights": [
+        3.0,
+        4.5,
+        6.0,
+        7.5,
+        9.0,
+        10.5
+      ],
+      "scores": [
+        0.14179998531656451,
+        0.19406379718463976,
+        0.17084328382138642,
+        0.13148045355072693,
+        0.14982153179522725,
+        0.17156254912771507
+      ],
+      "height_unit": "RELATIVE_DEPTH_UNITS"
+    },
+    "obj_001": {
+      "heights": [
+        3.239668201699302,
+        4.859502302548953,
+        6.479336403398603,
+        8.099170504248255,
+        9.719004605097906,
+        11.338838705947555,
+        12.958672806797207,
+        14.578506907646858,
+        16.19834100849651
+      ],
+      "scores": [
+        0.2111586504925922,
+        0.22146313744143037,
+        0.2334773671907623,
+        0.2599079319160943,
+        0.2642947262004349,
+        0.32020466309630086,
+        0.265572205064792,
+        0.32480344640029574,
+        0.3313002343966933
+      ],
+      "height_unit": "RELATIVE_DEPTH_UNITS"
+    },
+    "obj_002": {
+      "heights": [
+        3.0,
+        4.5,
+        6.0,
+        7.5,
+        9.0,
+        10.5,
+        12.0,
+        13.5
+      ],
+      "scores": [
+        0.3312748430941202,
+        0.3341057573102021,
+        0.3792205659146727,
+        0.37842782919665446,
+        0.37038022906032025,
+        0.4165542688517421,
+        0.4367331349915265,
+        0.4631689917021202
+      ],
+      "height_unit": "RELATIVE_DEPTH_UNITS"
+    },
+    "obj_003": {
+      "heights": [
+        4.75852481643427,
+        7.1377872246514045,
+        9.517049632868538,
+        11.896312041085674,
+        14.275574449302809,
+        16.654836857519943,
+        19.034099265737076,
+        21.413361673954213,
+        23.792624082171347
+      ],
+      "scores": [
+        0.19741422214764612,
+        0.19221935960442735,
+        0.26312248781549513,
+        0.31598306709306767,
+        0.31599440818139884,
+        0.3880354387863981,
+        0.41708589644577665,
+        0.4486749089279517,
+        0.47641554438102196
+      ],
+      "height_unit": "RELATIVE_DEPTH_UNITS"
+    },
+    "obj_004": {
+      "heights": [
+        3.4346450824948604,
+        5.151967623742291,
+        6.869290164989721,
+        8.586612706237151,
+        10.303935247484581,
+        12.021257788732012,
+        13.738580329979442,
+        15.455902871226872,
+        17.173225412474302
+      ],
+      "scores": [
+        0.19932577430982182,
+        0.23324318527475357,
+        0.19807308867100168,
+        0.2353765544379635,
+        0.20985979810445765,
+        0.2928344352972017,
+        0.30301354229119504,
+        0.3360853714115106,
+        0.38362289927564813
+      ],
+      "height_unit": "RELATIVE_DEPTH_UNITS"
+    },
+    "obj_005": {
+      "heights": [
+        3.0,
+        4.5,
+        6.0,
+        7.5
+      ],
+      "scores": [
+        0.2729704168079414,
+        0.3597703785141637,
+        0.32916657698550666,
+        0.4167537850008232
+      ],
+      "height_unit": "RELATIVE_DEPTH_UNITS"
+    },
+    "obj_006": {
+      "heights": [
+        3.0,
+        4.5,
+        6.0,
+        7.5
+      ],
+      "scores": [
+        0.08694224223095218,
+        0.1415399940891152,
+        0.15932982727359785,
+        0.20082612371900183
+      ],
+      "height_unit": "RELATIVE_DEPTH_UNITS"
+    },
+    "obj_007": {
+      "heights": [
+        3.0,
+        4.5,
+        6.0,
+        7.5,
+        9.0
+      ],
+      "scores": [
+        0.4266136212268747,
+        0.4503452366258294,
+        0.4014217050899664,
+        0.394031149473421,
+        0.3448817802134001
+      ],
+      "height_unit": "RELATIVE_DEPTH_UNITS"
+    }
+  },
+  "sdrl_log": [
+    {
+      "iteration": 0,
+      "candidate_id": "H0050",
+      "object_id": "obj_007",
+      "height_value": 4.5,
+      "score": 0.5733,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0049",
+      "object_id": "obj_007",
+      "height_value": 3.0,
+      "score": 0.5108,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0051",
+      "object_id": "obj_007",
+      "height_value": 6.0,
+      "score": 0.493,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0052",
+      "object_id": "obj_007",
+      "height_value": 7.5,
+      "score": 0.4593,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0053",
+      "object_id": "obj_007",
+      "height_value": 9.0,
+      "score": 0.4434,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0050",
+      "object_id": "obj_007",
+      "height_value": 4.5,
+      "score": 0.5733,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0049",
+      "object_id": "obj_007",
+      "height_value": 3.0,
+      "score": 0.5108,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0051",
+      "object_id": "obj_007",
+      "height_value": 6.0,
+      "score": 0.493,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0052",
+      "object_id": "obj_007",
+      "height_value": 7.5,
+      "score": 0.4593,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0053",
+      "object_id": "obj_007",
+      "height_value": 9.0,
+      "score": 0.4434,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0031",
+      "object_id": "obj_003",
+      "height_value": 23.792624082171347,
+      "score": 0.5286,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0030",
+      "object_id": "obj_003",
+      "height_value": 21.413361673954213,
+      "score": 0.4925,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0029",
+      "object_id": "obj_003",
+      "height_value": 19.034099265737076,
+      "score": 0.4571,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0028",
+      "object_id": "obj_003",
+      "height_value": 16.654836857519943,
+      "score": 0.421,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0027",
+      "object_id": "obj_003",
+      "height_value": 14.275574449302809,
+      "score": 0.39,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0026",
+      "object_id": "obj_003",
+      "height_value": 11.896312041085674,
+      "score": 0.3647,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0025",
+      "object_id": "obj_003",
+      "height_value": 9.517049632868538,
+      "score": 0.3454,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.345 < threshold 0.350; weak evidence: depth_agreement, segmentation_boundary",
+      "refinement": null
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0024",
+      "object_id": "obj_003",
+      "height_value": 7.1377872246514045,
+      "score": 0.3314,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.331 < threshold 0.350; weak evidence: depth_agreement, segmentation_boundary",
+      "refinement": null
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0023",
+      "object_id": "obj_003",
+      "height_value": 4.75852481643427,
+      "score": 0.3212,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.321 < threshold 0.350; contradicted by higher-scoring candidate on depth_agreement; weak evidence: depth_agreement, edge_overlap, segmentation_boundary",
+      "refinement": null
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0031",
+      "object_id": "obj_003",
+      "height_value": 23.792624082171347,
+      "score": 0.5286,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0030",
+      "object_id": "obj_003",
+      "height_value": 21.413361673954213,
+      "score": 0.4925,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0029",
+      "object_id": "obj_003",
+      "height_value": 19.034099265737076,
+      "score": 0.4571,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0028",
+      "object_id": "obj_003",
+      "height_value": 16.654836857519943,
+      "score": 0.421,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0027",
+      "object_id": "obj_003",
+      "height_value": 14.275574449302809,
+      "score": 0.39,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0026",
+      "object_id": "obj_003",
+      "height_value": 11.896312041085674,
+      "score": 0.3647,
+      "status": "REJECTED",
+      "rejection_reason": "overall score 0.365 < threshold 0.378; weak evidence: depth_agreement, segmentation_boundary, terrain",
+      "refinement": null
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0044",
+      "object_id": "obj_005",
+      "height_value": 7.5,
+      "score": 0.5097,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0043",
+      "object_id": "obj_005",
+      "height_value": 6.0,
+      "score": 0.4533,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0042",
+      "object_id": "obj_005",
+      "height_value": 4.5,
+      "score": 0.4069,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 0,
+      "candidate_id": "H0041",
+      "object_id": "obj_005",
+      "height_value": 3.0,
+      "score": 0.3697,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_0_survivor"
+    },
+    {
+      "iteration": 1,
+      "candidate_id": "H0044",
+      "object_id": "obj_005",
+      "height_value": 7.5,
+      "score": 0.5097,
+      "status": "SURVIVED",
+      "rejection_reason": null,
+      "refinement": "iteration_1_survivor"
+    }
+  ],
+  "dsm": {
+    "scale_mode": "RELATIVE",
+    "exported_files": [
+      "dsm.png",
+      "rdsm.png",
+      "dsm.npz",
+      "dsm_metadata.json"
+    ],
+    "stats": {
+      "dsm": {
+        "min": 0.8291740417480469,
+        "max": 2.6354734897613525,
+        "mean": 1.247257113456726,
+        "std": 0.34692487120628357
+      },
+      "rdsm": {
+        "min": 0.0,
+        "max": 1.1940687894821167,
+        "mean": 0.03014005348086357,
+        "std": 0.11185677349567413,
+        "nonzero_fraction": 0.12131118774414062
+      }
+    }
+  },
+  "mesh": {
+    "vertex_count": 65536,
+    "face_count": 130050,
+    "vertical_exaggeration": 1.5,
+    "warning": "Mesh Z-axis is in RELATIVE depth units \u2014 not metric elevation."
+  },
+  "phase_runtimes_s": {
+    "phase3_structure": 1.721,
+    "phase4_hcdc": 0.019,
+    "phase10_terrain": 0.509,
+    "phase5_candidates": 0.0,
+    "phase6_7_chf_iscl": 0.011,
+    "phase8_shadow": 0.007,
+    "phase9_occlusion": 0.001,
+    "phase11_egss": 0.004,
+    "phase12_sdrl": 0.001
+  },
+  "total_runtime_s": 2.274,
+  "output_files": [
+    "input_preview.png",
+    "depth.png",
+    "structures.png",
+    "depth_corrected.png",
+    "height_fingerprint.png",
+    "verification_table.png",
+    "dsm.png",
+    "rdsm.png",
+    "dsm.npz",
+    "dsm_metadata.json",
+    "mesh.glb"
+  ]
+}

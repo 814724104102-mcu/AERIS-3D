@@ -1,6 +1,6 @@
 # AERIS-3D Dataset Quality Report
 
-Generated: 2026-09-11 02:37:50 UTC
+Generated: 2026-09-12 12:55:07 UTC
 
 ## Dataset Status
 
@@ -25,8 +25,8 @@ GAMUS (earthflow/GAMUS) — RGB + normalized-DSM tiles across 5 US cities. 6 lan
 
 ## §8.3 Baseline Metrics
 
-**Status**: `SKIPPED_BY_FLAG`  
-**Model**: `N/A`
+**Status**: `SKIPPED_DATASET_NOT_FOUND`  
+**Model**: `depth_anything_v2_small`
 
 _No metrics computed — reference data unavailable._
 

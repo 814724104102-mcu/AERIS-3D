@@ -1,7 +1,7 @@
 {
   "status": "DATASET_NOT_FOUND",
   "path": "/Users/mugil/Downloads/Pause/ARIES/data/dataset/raw",
-  "timestamp": "2026-09-11T02:37:50Z",
+  "timestamp": "2026-09-12T12:55:07Z",
   "dataset_name": "GAMUS (recommended by SIH26175 spec)",
   "dataset_description": "GAMUS (earthflow/GAMUS) \u2014 RGB + normalized-DSM tiles across 5 US cities. 6 land-cover classes: ground, low-vegetation, building, water, road, tree. Pre-split by city (geography-clean). Suitable for depth-backbone adaptation.",
   "source_url": "https://huggingface.co/datasets/earthflow/GAMUS",

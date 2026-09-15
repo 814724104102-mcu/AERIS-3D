@@ -1,6 +1,11 @@
 {
-  "status": "SKIPPED_BY_FLAG",
+  "status": "SKIPPED_DATASET_NOT_FOUND",
+  "model": "depth_anything_v2_small",
+  "device": "mps",
+  "evaluation_scope": "PRETRAINED_NO_FINETUNING",
+  "metrics": {},
   "notes": [
-    "--skip-baseline passed by user."
-  ]
+    "Dataset not found locally. Baseline evaluation requires a dataset with ground-truth DSM/height targets. GAMUS provides normalized DSM (0\u20131 relative height) which can be used for scale-invariant correlation metrics."
+  ],
+  "timestamp": "2026-09-12T12:55:07Z"
 }

@@ -147,10 +147,13 @@ def build_mesh(
     max_faces = int(mesh_cfg.get("decimation_face_count", 50000))
     if len(mesh.faces) > max_faces:
         try:
-            mesh = mesh.simplify_quadric_decimation(max_faces)
+            # trimesh 5.x + fast_simplification: use face_count keyword
+            mesh = mesh.simplify_quadric_decimation(face_count=max_faces)
             log.info("Mesh decimated to %d faces", len(mesh.faces))
         except Exception as exc:
             log.warning("Mesh decimation failed (%s) — using full mesh.", exc)
+
+
 
     n_verts = len(mesh.vertices)
     n_faces = len(mesh.faces)

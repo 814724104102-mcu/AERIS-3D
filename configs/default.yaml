@@ -123,8 +123,8 @@ dsm:
 
 # ── Mesh (Phase 15) ──────────────────────────────────────────
 mesh:
-  resolution: 256               # grid size before decimation
-  decimation_face_count: 50000  # target faces after simplification
+  resolution: 200               # grid size before decimation (200→~78k faces before decimation)
+  decimation_face_count: 50000  # target faces after simplification (~900 KB GLB)
   export_glb: true
   export_obj: false
   vertical_exaggeration: 1.5    # subtle exaggeration for 3D viewer clarity
@@ -178,5 +178,5 @@ runtime:
   candidate_limit_seconds: 60
   verification_limit_seconds: 90
 
-# ── Internal versioning (cache key component) ─────────────────
-config_version: "0.1.0"
+# ── Internal versioning (cache key component) ───────────────────
+config_version: "0.2.0"

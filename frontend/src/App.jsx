@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import ThreeViewer from './ThreeViewer';
 import './index.css';
 
@@ -439,38 +439,97 @@ export default function App() {
   const [dragOver, setDragOver] = useState(false);
   const [activeTab, setActiveTab] = useState('verify');
   const [viewerKey, setViewerKey] = useState(0);
+  const [floodLevel, setFloodLevel] = useState(0);   // 0–5 m continuous
+  const [liveWeights, setLiveWeights] = useState(null); // null = use server weights
+  const [wsLog, setWsLog]       = useState([]);         // live stage log
 
-  const fileInputRef = useRef(null);
+  const fileInputRef  = useRef(null);
   const rightPanelRef = useRef(null);
+  const wsRef         = useRef(null);
 
   // Determine current stage index
   const stageIdx = PIPELINE_STAGES.findIndex(
     s => s.toLowerCase() === stage.toLowerCase()
   );
 
-  // Poll job status
+  // ── WebSocket live-progress (replaces HTTP polling) ──────────
   useEffect(() => {
-    if (!jobId || (status !== 'queued' && status !== 'running')) return;
-    const interval = setInterval(async () => {
+    if (!jobId || status === 'done' || status === 'error' || status === '' || status === 'uploading') return;
+
+    const wsUrl = `ws://localhost:8000/ws/jobs/${jobId}`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setWsLog(prev => [...prev, { stage: 'Connected', progress: 0 }]);
+    };
+
+    ws.onmessage = (event) => {
       try {
-        const res = await fetch(`${API_BASE}/job/${jobId}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        setStatus(data.status);
-        setProgress(data.progress ?? 0);
-        setStage(data.stage ?? '');
-        if (data.status === 'done') {
-          setResults(data.result);
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'stage') {
+          setStage(msg.stage);
+          setProgress(msg.progress);
+          setStatus('running');
+          setWsLog(prev => [...prev.slice(-20), { stage: msg.stage, progress: msg.progress }]);
+        } else if (msg.type === 'done') {
+          setStatus('done');
+          setProgress(100);
+          setStage('Complete');
+          setResults(msg.result);
           setViewerKey(k => k + 1);
-        } else if (data.status === 'error') {
-          setError(data.error ?? 'Unknown pipeline error');
+          ws.close();
+        } else if (msg.type === 'error') {
+          setStatus('error');
+          setError(msg.error ?? 'Pipeline error');
+          ws.close();
         }
       } catch (e) {
-        console.error('Poll error:', e);
+        console.warn('WS parse error:', e);
       }
-    }, 800);
-    return () => clearInterval(interval);
-  }, [jobId, status]);
+    };
+
+    ws.onerror = () => {
+      // Fallback: poll via HTTP if WS fails
+      console.warn('WS failed, falling back to HTTP polling');
+    };
+
+    ws.onclose = () => {
+      // If job not yet done when WS closes, do a final HTTP fetch
+      if (status !== 'done' && status !== 'error') {
+        fetch(`${API_BASE}/job/${jobId}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.status === 'done') {
+              setStatus('done'); setProgress(100); setStage('Complete');
+              setResults(data.result); setViewerKey(k => k + 1);
+            } else if (data.status === 'error') {
+              setStatus('error'); setError(data.error);
+            }
+          }).catch(() => {});
+      }
+    };
+
+    return () => { ws.close(); };
+  }, [jobId]);
+
+  // HTTP polling fallback (only fires if WS never connected or missed state change)
+  useEffect(() => {
+    if (!jobId || (status !== 'running' && status !== 'queued')) return;
+    // WS handles updates; this is a safety net for cases WS drops
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/job/${jobId}`);
+        const data = await res.json();
+        if (data.status === 'done' && status !== 'done') {
+          setStatus('done'); setProgress(100); setStage('Complete');
+          setResults(data.result); setViewerKey(k => k + 1);
+        }
+      } catch {}
+    }, 8000); // only fires if still running after 8s
+    return () => clearTimeout(t);
+  }, [jobId, stage]);
+
 
   const handleFile = useCallback(f => {
     if (!f) return;
@@ -481,6 +540,9 @@ export default function App() {
     setError(null);
     setProgress(0);
     setStage('');
+    setWsLog([]);
+    setLiveWeights(null);
+    setFloodLevel(0);
   }, []);
 
   const handleFileChange = e => {
@@ -528,12 +590,41 @@ export default function App() {
     ? results.uncertainty.find(u => u.candidate_id === firstSurvivor.candidate_id)
     : null;
 
+  // ── Client-side re-scoring ────────────────────────────────────
+  // When liveWeights is set, recompute overall_score for every candidate.
+  // This runs entirely in the browser — no network call on slider move.
+  const rescored = useMemo(() => {
+    if (!results?.candidates_table || !liveWeights) return results?.candidates_table;
+    const REJECTION_THRESHOLD = 0.35;
+    return results.candidates_table.map(c => {
+      const cs = c.component_scores || {};
+      const score = Object.entries(liveWeights).reduce((sum, [k, w]) => {
+        return sum + (cs[k] ?? 0) * w;
+      }, 0);
+      return {
+        ...c,
+        overall_score: Math.round(score * 10000) / 10000,
+        status: score >= REJECTION_THRESHOLD ? 'SURVIVED' : 'REJECTED',
+      };
+    });
+  }, [results, liveWeights]);
+
+  // Default weights from first survivor
+  const defaultWeights = useMemo(() => {
+    if (!firstSurvivor?.weights) return null;
+    return { ...firstSurvivor.weights };
+  }, [firstSurvivor]);
+
+  const activeWeights = liveWeights || defaultWeights || {};
+  const activeCandidates = rescored || results?.candidates_table || [];
+
   const glbUrl = isDone && jobId ? `${API_BASE}/file/${jobId}/mesh.glb` : null;
 
   const tabs = [
     { id: 'verify',   label: 'AERIS Verify' },
     { id: 'evidence', label: 'Evidence' },
     { id: 'slope',    label: 'Slope' },
+    { id: 'weights',  label: 'Weights' },
     { id: 'export',   label: 'Export' },
   ];
 
@@ -547,7 +638,12 @@ export default function App() {
       {/* ── 3D Viewer: fullscreen background ── */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
         {glbUrl ? (
-          <ThreeViewer key={viewerKey} glbUrl={glbUrl} />
+          <ThreeViewer
+            key={viewerKey}
+            glbUrl={glbUrl}
+            floodLevel={floodLevel}
+            survivors={results?.survivors}
+          />
         ) : (
           <IdleCenterState isProcessing={isProcessing} />
         )}
@@ -1012,8 +1108,117 @@ export default function App() {
                 </div>
               )}
 
+              {/* ── WEIGHTS + FLOOD tab ───────────────────────── */}
+              {activeTab === 'weights' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <SectionHeader title="Live Evidence Weights" />
+                    <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 10 }}>
+                      Drag sliders to reweight evidence components. SURVIVED / REJECTED status updates instantly in the browser — no new backend call.
+                    </p>
+                    {Object.keys(activeWeights).length === 0 && (
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Run the pipeline first to unlock weight sliders.</div>
+                    )}
+                    {Object.entries(activeWeights).map(([key, val]) => (
+                      <div key={key} style={{ marginBottom: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ fontSize: 10, color: 'var(--text-dim)', fontFamily: 'var(--text-mono)' }}>
+                            {key.replace(/_/g, ' ')}
+                          </span>
+                          <span style={{ fontSize: 10, color: 'var(--accent)', fontFamily: 'var(--text-mono)' }}>
+                            {(activeWeights[key] * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={activeWeights[key]}
+                          onChange={e => {
+                            const next = { ...activeWeights, [key]: parseFloat(e.target.value) };
+                            setLiveWeights(next);
+                          }}
+                          style={{
+                            width: '100%',
+                            accentColor: 'var(--accent)',
+                            cursor: 'pointer',
+                          }}
+                        />
+                      </div>
+                    ))}
+                    {liveWeights && (
+                      <button
+                        onClick={() => setLiveWeights(null)}
+                        style={{
+                          marginTop: 4, fontSize: 10, color: 'var(--text-muted)',
+                          background: 'none', border: '1px solid var(--border)',
+                          borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
+                          fontFamily: 'var(--text-mono)',
+                        }}
+                      >
+                        ↺ Reset to server weights
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Live rescored mini-table */}
+                  {activeCandidates.length > 0 && (
+                    <div>
+                      <SectionHeader title="Live Verification (rescored)" />
+                      <table className="verif-table">
+                        <thead>
+                          <tr><th>Candidate</th><th>Height</th><th>Score</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                          {activeCandidates.filter(c => c.object_id === activeCandidates[0]?.object_id).slice(0, 8).map(c => (
+                            <tr key={c.candidate_id} className={c.status === 'SURVIVED' ? 'row-survived' : 'row-rejected'}>
+                              <td className="mono" style={{ fontSize: 10 }}>{c.candidate_id}</td>
+                              <td className="mono">{c.height_value.toFixed(1)}</td>
+                              <td className="mono">{c.overall_score.toFixed(4)}</td>
+                              <td>
+                                <span className={`badge ${c.status === 'SURVIVED' ? 'badge-survived' : 'badge-rejected'}`}>
+                                  {c.status === 'SURVIVED' ? '✓ Survived' : '✗ Rejected'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Flood slider */}
+                  <div>
+                    <SectionHeader title="Flood Scenario" />
+                    <div style={{ fontSize: 10, color: 'rgba(255,200,0,0.7)', marginBottom: 8, lineHeight: 1.5 }}>
+                      ⚠ SCENARIO SIMULATION — NOT A FLOOD FORECAST
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>Water level offset</span>
+                      <span style={{ fontSize: 11, color: '#1a6bff', fontFamily: 'var(--text-mono)', fontWeight: 700 }}>
+                        {floodLevel === 0 ? 'Off' : `+${floodLevel.toFixed(1)} m`}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={5}
+                      step={0.1}
+                      value={floodLevel}
+                      onChange={e => setFloodLevel(parseFloat(e.target.value))}
+                      style={{ width: '100%', accentColor: '#1a6bff', cursor: 'pointer' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--text-mono)', marginTop: 4 }}>
+                      <span>Off</span><span>+5 m</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* ── EXPORT tab ───────────────────────────────── */}
               {activeTab === 'export' && (
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div>
                     <SectionHeader title="Downloadable Assets" />

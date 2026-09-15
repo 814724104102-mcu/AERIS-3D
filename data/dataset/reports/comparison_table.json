@@ -4,7 +4,7 @@
     {
       "mode": "A \u2014 Pretrained depth only (no AERIS)",
       "status": "SKIPPED_NO_REFERENCE_DATA",
-      "reason": "--skip-baseline passed by user."
+      "reason": "Dataset not found locally. Baseline evaluation requires a dataset with ground-truth DSM/height targets. GAMUS provides normalized DSM (0\u20131 relative height) which can be used for scale-invariant correlation metrics."
     },
     {
       "mode": "B \u2014 Pretrained depth + full AERIS-3D",

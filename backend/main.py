@@ -22,13 +22,13 @@ import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -64,10 +64,33 @@ app.add_middleware(
 
 # Job store: {job_id: {status, result, error, output_dir}}
 jobs: dict[str, dict[str, Any]] = {}
-executor = ThreadPoolExecutor(max_workers=2)
+executor = ThreadPoolExecutor(max_workers=4)
+ws_connections: Dict[str, List[WebSocket]] = {}
+main_loop: Optional[asyncio.AbstractEventLoop] = None
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Load configuration once at startup."""
+    global main_loop
+    main_loop = asyncio.get_running_loop()
+
 
 JOBS_DIR = Path("data/jobs")
 JOBS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+async def _ws_broadcast(job_id: str, payload: dict) -> None:
+    """Push a JSON payload to all WebSocket listeners for this job."""
+    sockets = ws_connections.get(job_id, [])
+    dead = []
+    for ws in sockets:
+        try:
+            await ws.send_json(payload)
+        except Exception:
+            dead.append(ws)
+    for ws in dead:
+        sockets.remove(ws)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -177,6 +200,50 @@ async def list_jobs():
 
 
 # ─────────────────────────────────────────────────────────────
+# WebSocket live-progress endpoint
+# ─────────────────────────────────────────────────────────────
+
+
+@app.websocket("/ws/jobs/{job_id}")
+async def ws_job_progress(websocket: WebSocket, job_id: str):
+    """
+    WebSocket endpoint — push pipeline stage updates to the client
+    as they happen, instead of the client polling HTTP.
+
+    Message format:
+      {"type": "stage", "stage": str, "progress": int}
+      {"type": "done",  "result": {...}}
+      {"type": "error", "error": str}
+    """
+    await websocket.accept()
+    if job_id not in ws_connections:
+        ws_connections[job_id] = []
+    ws_connections[job_id].append(websocket)
+    try:
+        # If job already done, send result immediately
+        if job_id in jobs:
+            job = jobs[job_id]
+            if job["status"] == "done":
+                await websocket.send_json({"type": "done", "result": job["result"]})
+                return
+            elif job["status"] == "error":
+                await websocket.send_json({"type": "error", "error": job.get("error")})
+                return
+        # Otherwise wait for messages from the pipeline runner
+        while True:
+            try:
+                await asyncio.wait_for(websocket.receive_text(), timeout=60.0)
+            except asyncio.TimeoutError:
+                # Send ping to keep connection alive
+                await websocket.send_json({"type": "ping"})
+    except WebSocketDisconnect:
+        pass
+    finally:
+        if job_id in ws_connections and websocket in ws_connections[job_id]:
+            ws_connections[job_id].remove(websocket)
+
+
+# ─────────────────────────────────────────────────────────────
 # Background pipeline runner
 # ─────────────────────────────────────────────────────────────
 
@@ -186,6 +253,13 @@ def _progress(job_id: str, stage: str, pct: int) -> None:
         jobs[job_id]["stage"] = stage
         jobs[job_id]["progress"] = pct
         log.info("Job %s [%d%%] %s", job_id, pct, stage)
+    # Push to WebSocket listeners (thread-safe via run_coroutine_threadsafe)
+    try:
+        if main_loop is not None:
+            payload = {"type": "stage", "stage": stage, "progress": pct}
+            asyncio.run_coroutine_threadsafe(_ws_broadcast(job_id, payload), main_loop)
+    except Exception:
+        pass  # WS push is best-effort — never block the pipeline
 
 
 def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
@@ -408,6 +482,14 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
         jobs[job_id]["progress"] = 100
         jobs[job_id]["stage"] = "Complete"
         log.info("Job %s: DONE in %.1fs", job_id, pr.total_runtime_s)
+        # Push final result to WebSocket listeners
+        try:
+            if main_loop is not None:
+                asyncio.run_coroutine_threadsafe(
+                    _ws_broadcast(job_id, {"type": "done", "result": result_data}), main_loop
+                )
+        except Exception:
+            pass
 
     except Exception as exc:
         tb = traceback.format_exc()
@@ -415,6 +497,14 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
         jobs[job_id]["status"] = "error"
         jobs[job_id]["error"] = str(exc)
         jobs[job_id]["stage"] = "Error"
+        # Push error to WebSocket listeners
+        try:
+            if main_loop is not None:
+                asyncio.run_coroutine_threadsafe(
+                    _ws_broadcast(job_id, {"type": "error", "error": str(exc)}), main_loop
+                )
+        except Exception:
+            pass
 
 
 def _save_outputs(pr, output_dir: Path) -> None:

@@ -50,5 +50,6 @@ pytest>=7.4.0
 pytest-cov>=4.1.0
 
 # ── Optional: performance ─────────────────────────────────────
-# numba>=0.58.0         # JIT compilation for hot loops (install manually if needed)
-# open3d>=0.17.0        # alternative mesh ops (may conflict on some platforms)
+fast-simplification>=0.1.0   # mesh decimation (trimesh.simplify_quadric_decimation)
+# numba>=0.58.0              # JIT compilation for hot loops (install manually if needed)
+# open3d>=0.17.0             # alternative mesh ops (may conflict on some platforms)

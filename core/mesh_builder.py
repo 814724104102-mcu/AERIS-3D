@@ -150,6 +150,16 @@ def build_mesh(
             # trimesh 5.x + fast_simplification: use face_count keyword
             mesh = mesh.simplify_quadric_decimation(face_count=max_faces)
             log.info("Mesh decimated to %d faces", len(mesh.faces))
+            
+            # HOTFIX: Trimesh decimation loses visual.kind, causing GLTF exporter to drop colors.
+            # Recreating the mesh object preserves the colors properly.
+            if hasattr(mesh.visual, "vertex_colors") and len(mesh.visual.vertex_colors) > 0:
+                mesh = trimesh.Trimesh(
+                    vertices=mesh.vertices,
+                    faces=mesh.faces,
+                    vertex_colors=mesh.visual.vertex_colors,
+                    process=False
+                )
         except Exception as exc:
             log.warning("Mesh decimation failed (%s) — using full mesh.", exc)
 

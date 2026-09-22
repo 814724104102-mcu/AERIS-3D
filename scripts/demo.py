@@ -1,17 +1,6 @@
-#!/usr/bin/env python3
 """
-AERIS-3D — Demo CLI (Phases 0–2)
+AERIS-3D — Demo CLI (Phases 0–12)
 Usage: python scripts/demo.py --input <image_path> [--config <config.yaml>] [--output-dir <dir>]
-
-Gates tested:
-  Gate 1 — image loads
-  Gate 2 — depth map produced
-
-Outputs:
-  input_preview.png        — resized RGB preview
-  depth.png                — colorized depth (inferno)
-  initial_depth.png        — depth overlay on input
-  results.json             — structured pipeline metadata
 """
 from __future__ import annotations
 
@@ -32,13 +21,13 @@ from core.depth_engine import DepthEngine
 from core.hardware import get_hardware
 from core.input_manager import load_input
 from core.logger import get_logger
+from core.pipeline import run_pipeline
 
 log = get_logger("demo")
 
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="AERIS-3D Demo — Single-image 3D reconstruction (Phases 0-2)",
+        description="AERIS-3D Demo — Single-image 3D reconstruction (Phases 0-12)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -53,10 +42,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-cache", action="store_true")
     return parser.parse_args()
 
-
 def generate_synthetic_test_image(output_path: Path) -> Path:
     from PIL import Image as PILImage
-
     log.warning("No input image — generating synthetic test image: %s", output_path)
     h, w = 512, 512
     img = np.zeros((h, w, 3), dtype=np.uint8)
@@ -75,29 +62,62 @@ def generate_synthetic_test_image(output_path: Path) -> Path:
     PILImage.fromarray(img).save(output_path)
     return output_path
 
-
-def colorize_depth(nd: np.ndarray) -> np.ndarray:
+def save_plot(pipeline_result, output_dir: Path):
     import matplotlib
-
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    
+    # We create a visualization showing height vs consistency graph
+    chf_result = pipeline_result.chf_result
+    sdrl_result = pipeline_result.sdrl_result
+    
+    for obj_id, best_score in sdrl_result.survivors.items():
+        if obj_id not in chf_result.height_fingerprint:
+            continue
+        fp = chf_result.height_fingerprint[obj_id]
+        heights = fp["heights"]
+        scores = fp["scores"]
+        unit = fp.get("height_unit", "units")
+        
+        plt.figure(figsize=(10, 6))
+        plt.plot(heights, scores, marker='o', linestyle='-', color='blue', label='CHF Score')
+        
+        # Mark SURVIVED and REJECTED
+        survivor_h = best_score.height_value
+        plt.axvline(survivor_h, color='green', linestyle='--', label=f'Best Supported ({survivor_h:.1f})')
+        
+        rejected_cands = sdrl_result.rejected.get(obj_id, [])
+        rejected_heights = [cand.height_value for cand in rejected_cands]
+        rejected_scores = [cand.overall_score for cand in rejected_cands] # Wait, these are EGSS scores, let's plot those
+        
+        # Plot EGSS scores too
+        # Find all EGSS scores for this object
+        egss_scores = [score for score in pipeline_result.evidence_scores if score.object_id == obj_id]
+        egss_h = [s.height_value for s in egss_scores]
+        egss_s = [s.overall_score for s in egss_scores]
+        
+        # Sort for plotting
+        sorted_egss = sorted(zip(egss_h, egss_s))
+        plt.plot([x[0] for x in sorted_egss], [x[1] for x in sorted_egss], marker='s', linestyle='-', color='purple', label='EGSS Score')
+        
+        # Plot rejected
+        if rejected_heights:
+            plt.scatter(rejected_heights, rejected_scores, color='red', marker='x', s=100, label='Rejected', zorder=5)
+            
+        plt.scatter([survivor_h], [best_score.overall_score], color='green', marker='*', s=200, label='Survived', zorder=5)
 
-    cmap = plt.get_cmap("inferno")
-    rgba = cmap(nd)
-    return (rgba[:, :, :3] * 255).astype(np.uint8)
-
-
-def save_image(arr: np.ndarray, path: Path) -> None:
-    from PIL import Image as PILImage
-
-    PILImage.fromarray(arr).save(path)
-    log.info("Saved: %s", path)
-
+        plt.title(f'Object {obj_id}: Height vs Consistency')
+        plt.xlabel(f'Height ({unit})')
+        plt.ylabel('Score')
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(output_dir / f"height_consistency_{obj_id}.png")
+        plt.close()
 
 def run_demo(args: argparse.Namespace) -> int:
     pipeline_start = time.perf_counter()
 
-    # ── Load config ───────────────────────────────────────────
     try:
         cfg = load_config(args.config)
     except Exception as exc:
@@ -111,114 +131,64 @@ def run_demo(args: argparse.Namespace) -> int:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    hw = get_hardware()
-    log.info(
-        "Hardware: device=%s (%s) CPUs=%d", hw.device, hw.device_name, hw.cpu_count
-    )
-
-    # ── Resolve input ─────────────────────────────────────────
     if args.input:
         input_path = Path(args.input)
-        if not input_path.exists():
-            log.error("Input not found: %s", input_path)
-            return 1
     else:
-        input_path = generate_synthetic_test_image(
-            Path("data/input/synthetic_test.jpg")
-        )
+        input_path = generate_synthetic_test_image(Path("data/input/synthetic_test.jpg"))
 
-    # ── Gate 1: Load input ────────────────────────────────────
-    log.info("=== GATE 1: Loading input ===")
-    try:
-        input_data = load_input(input_path, cfg)
-    except Exception as exc:
-        log.error("Input loading failed: %s", exc, exc_info=True)
-        return 1
+    input_data = load_input(input_path, cfg)
+    engine = DepthEngine(cfg)
+    depth_result = engine.estimate(input_data.image_rgb, input_data.input_hash, cfg_hash)
 
-    from PIL import Image as PILImage
-
-    pil_prev = PILImage.fromarray(input_data.image_rgb)
-    if max(pil_prev.size) > 1024:
-        pil_prev.thumbnail((1024, 1024), PILImage.LANCZOS)
-    pil_prev.save(output_dir / "input_preview.png")
-    log.info("Gate 1 PASSED")
-
-    # ── Gate 2: Depth estimation ──────────────────────────────
-    log.info("=== GATE 2: Depth estimation ===")
-    try:
-        engine = DepthEngine(cfg)
-        depth_result = engine.estimate(
-            input_data.image_rgb, input_data.input_hash, cfg_hash
-        )
-    except Exception as exc:
-        log.error("Depth failed: %s", exc, exc_info=True)
-        return 1
-
-    nd = depth_result.normalized_depth
-    save_image(colorize_depth(nd), output_dir / "depth.png")
+    # RUN FULL PIPELINE
+    pipeline_result = run_pipeline(input_data, depth_result, cfg)
     
-    # Overlay
-    pil_rgb = PILImage.fromarray(input_data.image_rgb)
-    pil_dep = PILImage.fromarray(colorize_depth(nd))
-    pil_dep = pil_dep.resize(pil_rgb.size, PILImage.BILINEAR)
-    blended = PILImage.blend(pil_rgb, pil_dep, 0.5)
-    blended.save(output_dir / "initial_depth.png")
-    log.info(
-        "Gate 2 PASSED | model=%s device=%s cache=%s runtime=%.2fs",
-        depth_result.depth_metadata.model_name,
-        depth_result.depth_metadata.device,
-        depth_result.depth_metadata.cache_hit,
-        depth_result.depth_metadata.runtime_s,
-    )
-
-    # ── Write results.json ────────────────────────────────────
-    total_runtime = time.perf_counter() - pipeline_start
+    # Visualizations
+    save_plot(pipeline_result, output_dir)
+    
+    # Save results.json
     results = {
-        "aeris3d_version": "0.2.0",
-        "pipeline_phase": "Phase0-2_AERIS_Core",
-        "gates_passed": [
-            "Gate1_Input",
-            "Gate2_Depth",
-        ],
-        "input": {
-            "file": str(input_path),
-            "format": input_data.file_format.value,
-            "original_size": {
-                "height": input_data.preprocessing_meta.original_height,
-                "width": input_data.preprocessing_meta.original_width,
-            },
-            "georef_present": input_data.georef is not None,
-        },
-        "depth": {
-            "model": depth_result.depth_metadata.model_name,
-            "device": depth_result.depth_metadata.device,
-            "relative_only": depth_result.depth_metadata.relative_only,
-            "runtime_s": depth_result.depth_metadata.runtime_s,
-        },
-        "total_runtime_s": round(total_runtime, 3),
+        "pipeline_phase": "Phase0-12",
+        "candidates_evaluated": pipeline_result.n_candidates,
+        "n_survived": pipeline_result.n_survived,
+        "n_rejected": pipeline_result.n_rejected,
+        "phase_runtimes": pipeline_result.phase_runtimes,
+        "total_runtime_s": pipeline_result.total_runtime_s,
+        "objects": {}
     }
+    
+    for obj_id, survivor in pipeline_result.sdrl_result.survivors.items():
+        rejected = pipeline_result.sdrl_result.rejected.get(obj_id, [])
+        results["objects"][obj_id] = {
+            "best_height": survivor.height_value,
+            "best_score": survivor.overall_score,
+            "status": "SURVIVED",
+            "component_scores": survivor.component_scores,
+            "rejected_candidates": [
+                {
+                    "candidate_id": r.candidate_id,
+                    "height": r.height_value,
+                    "score": r.overall_score,
+                    "status": "REJECTED"
+                } for r in rejected
+            ]
+        }
 
     with open(output_dir / "results.json", "w") as f:
         json.dump(results, f, indent=2, default=str)
     log.info("Saved: %s", output_dir / "results.json")
 
-    print("\n=================================================================")
-    print("AERIS-3D Demo — Phase 0-2 Complete")
-    print("=================================================================")
-    print(f"  Input:    {input_path}")
-    print(f"  Georef:   {'YES' if input_data.georef else 'NO'}")
-    print(f"  Model:    {depth_result.depth_metadata.model_name} on {depth_result.depth_metadata.device}")
-    print(f"  Runtime:  {total_runtime:.2f}s total")
-    print("\n  Outputs:")
-    print("    ✓ input_preview.png")
-    print("    ✓ depth.png")
-    print("    ✓ initial_depth.png")
-    print("    ✓ results.json")
-    print("=================================================================")
-    print("  Gate1 ✓  Gate2 ✓\n")
-
     return 0
 
-
 if __name__ == "__main__":
-    sys.exit(run_demo(parse_args()))
+    import cProfile
+    pr = cProfile.Profile()
+    pr.enable()
+    exit_code = run_demo(parse_args())
+    pr.disable()
+    pr.dump_stats("pipeline.prof")
+    print("Profiling saved to pipeline.prof")
+    import pstats
+    p = pstats.Stats('pipeline.prof')
+    p.sort_stats('cumulative').print_stats(20)
+    sys.exit(exit_code)

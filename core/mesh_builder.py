@@ -64,13 +64,22 @@ def build_mesh(
     """
     t0 = time.perf_counter()
     mesh_cfg = config.get("mesh", {})
-    resolution = int(mesh_cfg.get("resolution", 256))
+    max_resolution = int(mesh_cfg.get("max_resolution", 1024))
     v_exag = float(mesh_cfg.get("vertical_exaggeration", 1.5))
     export_obj = mesh_cfg.get("export_obj", False)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    log.info("Building mesh | resolution=%d | v_exag=%.1f", resolution, v_exag)
+    h_img, w_img = image_rgb.shape[:2]
+    if max(h_img, w_img) > max_resolution:
+        scale = max_resolution / max(h_img, w_img)
+        res_h = max(1, int(h_img * scale))
+        res_w = max(1, int(w_img * scale))
+    else:
+        res_h = h_img
+        res_w = w_img
+
+    log.info("Building mesh | res=%dx%d | v_exag=%.1f", res_w, res_h, v_exag)
 
     try:
         import trimesh
@@ -92,11 +101,11 @@ def build_mesh(
     from PIL import Image as PILImage
 
     dsm_img = PILImage.fromarray(dsm)
-    dsm_img = dsm_img.resize((resolution, resolution), PILImage.BILINEAR)
+    dsm_img = dsm_img.resize((res_w, res_h), PILImage.BILINEAR)
     dsm_small = np.array(dsm_img, dtype=np.float32)
 
     rgb_img = PILImage.fromarray(image_rgb)
-    rgb_img = rgb_img.resize((resolution, resolution), PILImage.LANCZOS)
+    rgb_img = rgb_img.resize((res_w, res_h), PILImage.LANCZOS)
     rgb_small = np.array(rgb_img, dtype=np.uint8)
 
     # ── 2. Normalize DSM to [0, 1] range ──────────────────────
@@ -107,9 +116,9 @@ def build_mesh(
     # ── 3. Build vertex grid ───────────────────────────────────
     # X, Y in [-1, 1] (image plane)
     # Z = dsm_norm × vertical_exaggeration
-    cols = np.linspace(-1.0, 1.0, resolution, dtype=np.float32)
-    rows = np.linspace(-1.0, 1.0, resolution, dtype=np.float32)
-    X, Y = np.meshgrid(cols, rows)  # both (resolution, resolution)
+    cols = np.linspace(-1.0, 1.0, res_w, dtype=np.float32)
+    rows = np.linspace(-1.0, 1.0, res_h, dtype=np.float32)
+    X, Y = np.meshgrid(cols, rows)  # both (res_h, res_w)
     Z = dsm_norm * v_exag
 
     # Flatten to vertex array
@@ -119,8 +128,7 @@ def build_mesh(
     vertex_colors = rgb_small.reshape(-1, 3).astype(np.float32) / 255.0
 
     # ── 4. Build face indices (two triangles per grid cell) ────
-    r = resolution
-    idx = np.arange(r * r, dtype=np.int32).reshape(r, r)
+    idx = np.arange(res_h * res_w, dtype=np.int32).reshape(res_h, res_w)
     # Top-left, top-right, bottom-left, bottom-right of each cell
     tl = idx[:-1, :-1].ravel()
     tr = idx[:-1, 1:].ravel()
@@ -133,7 +141,7 @@ def build_mesh(
             np.stack([tr, br, bl], axis=1),  # lower triangle
         ],
         axis=0,
-    )  # (2*(r-1)^2, 3)
+    )  # (2*(res_h-1)*(res_w-1), 3)
 
     # ── 5. Build trimesh and export ────────────────────────────
     mesh = trimesh.Trimesh(

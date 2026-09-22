@@ -57,3 +57,13 @@ Thumbs.db
 
 # Docker
 *.log
+
+data/GAMUS/
+data/hilly_test/
+data/e2e_tests/
+data/finetuned_model/
+AERIS-3D-Submission.zip
+submission_build/
+
+*.prof
+

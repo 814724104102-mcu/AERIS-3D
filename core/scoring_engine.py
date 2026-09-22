@@ -45,6 +45,8 @@ class EvidenceScore:
     weights: dict[str, float]
     rejection_threshold: float
     passes_threshold: bool
+    survival_margin: float = 0.0
+    confidence: str = "HIGH"
 
 
 def run_egss(

@@ -107,22 +107,32 @@ def solve_terrain(
     scale_mode = RELATIVE_LABEL
 
     if georef is not None:
+        try:
+            import rasterio.crs
+            crs_obj = rasterio.crs.CRS.from_string(georef.crs)
+            is_geographic = crs_obj.is_geographic
+            linear_units = crs_obj.linear_units if crs_obj.is_projected else "degrees"
+        except Exception as e:
+            log.warning("Could not parse CRS '%s': %s", georef.crs, e)
+            is_geographic = True # safe fallback
+
         px_size = min(abs(georef.pixel_size_x), abs(georef.pixel_size_y))
         if px_size > 0:
-            # px_size is in degrees or metres depending on CRS
-            # For metric CRS: pixels_per_meter = 1.0 / px_size
-            # We report it but don't claim metric height without full calibration
-            pixels_per_meter = 1.0 / px_size if px_size < 1.0 else None
-            if pixels_per_meter is not None:
-                scale_mode = ANCHORED_LABEL
+            if is_geographic:
+                # Approximation: 1 degree ~ 111320 meters at equator
+                # Since we don't have latitude, we can't do exact, but we can do rough anchoring or refuse.
+                # The user checklist says "fabricating metrics" is bad, so we refuse to anchor if geographic.
                 log.info(
-                    "Terrain scale: %.2f px/m from GeoTIFF CRS pixel size",
-                    pixels_per_meter,
+                    "GeoTIFF has Geographic CRS (units: degrees). Refusing to fabricate metric scale."
                 )
             else:
+                # Metric or feet, assume meters for simplicity or use linear_units if we want to be exact
+                pixels_per_meter = 1.0 / px_size
+                scale_mode = ANCHORED_LABEL
                 log.info(
-                    "GeoTIFF pixel size %.6f degrees — metric scale requires proj. Not anchoring.",
-                    px_size,
+                    "Terrain scale: %.2f px/m from GeoTIFF CRS (units: %s)",
+                    pixels_per_meter,
+                    linear_units,
                 )
 
     if scale_mode == RELATIVE_LABEL:

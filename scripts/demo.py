@@ -621,8 +621,12 @@ def run_demo(args: argparse.Namespace) -> int:
             "object_id": cand.object_id,
             "height_value": cand.height_value,
             "height_unit": cand.height_unit,
+            "breadth": round(getattr(cand, "breadth", 0.0), 2),
+            "angle": round(getattr(cand, "angle", 0.0), 2),
             "terrain_baseline": cand.terrain_baseline,
             "status": status,
+            "survival_margin": round(getattr(es, "survival_margin", 0.0), 4) if es else 0.0,
+            "confidence": getattr(es, "confidence", "HIGH") if es else "HIGH",
             "overall_score": round(es.overall_score, 4) if es else None,
             "component_scores": (
                 {k: round(v, 4) for k, v in es.component_scores.items()} if es else {}

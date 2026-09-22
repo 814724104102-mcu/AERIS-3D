@@ -1,0 +1,12 @@
+{
+  "mean_height": 0.0,
+  "std_height": 0.0,
+  "max_height": 100,
+  "class_distribution": {
+    "ground": 0.3,
+    "building": 0.2,
+    "road": 0.15,
+    "tree": 0.25,
+    "water": 0.1
+  }
+}

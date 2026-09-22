@@ -262,6 +262,16 @@ def _progress(job_id: str, stage: str, pct: int) -> None:
         pass  # WS push is best-effort — never block the pipeline
 
 
+def _sdrl_update(job_id: str, entry: dict) -> None:
+    try:
+        if main_loop is not None:
+            import asyncio
+            payload = {"type": "sdrl", "log": entry}
+            asyncio.run_coroutine_threadsafe(_ws_broadcast(job_id, payload), main_loop)
+    except Exception:
+        pass
+
+
 def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
     """
     Full AERIS-3D pipeline run for one uploaded image.
@@ -286,7 +296,12 @@ def _run_pipeline_job(job_id: str, input_path: Path, output_dir: Path) -> None:
 
         from core.pipeline import run_pipeline
 
-        pipeline_result = run_pipeline(input_data, depth_result, cfg)
+        pipeline_result = run_pipeline(
+            input_data,
+            depth_result,
+            cfg,
+            sdrl_callback=lambda entry: _sdrl_update(job_id, entry),
+        )
         pr = pipeline_result
         _progress(job_id, "Uncertainty analysis", 55)
 

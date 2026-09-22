@@ -27,10 +27,13 @@ from typing import Optional
 
 import numpy as np
 
+
 from core.hardware import get_hardware
 from core.logger import get_logger
 
 log = get_logger("depth_engine")
+
+_GLOBAL_MODEL_CACHE = {}
 
 
 @dataclass
@@ -220,7 +223,7 @@ class DepthEngine:
             )
 
         # Load model only once
-        if self._model is None or self._model_name != model_name:
+        if model_name not in _GLOBAL_MODEL_CACHE:
             log.info("Loading Depth Anything V2 from HF hub: %s", repo)
             torch_device = self.device
 
@@ -236,16 +239,17 @@ class DepthEngine:
             else:
                 dtype = torch.float32
 
-            self._model = hf_pipeline(
+            _GLOBAL_MODEL_CACHE[model_name] = hf_pipeline(
                 task="depth-estimation",
                 model=repo,
                 device=torch_device,
                 dtype=dtype,
             )
-            self._model_name = model_name
             log.info(
                 "Depth Anything V2 loaded | device=%s | dtype=%s", torch_device, dtype
             )
+        self._model = _GLOBAL_MODEL_CACHE[model_name]
+        self._model_name = model_name
 
         # Run inference
         pil_img = PILImage.fromarray(image_rgb)

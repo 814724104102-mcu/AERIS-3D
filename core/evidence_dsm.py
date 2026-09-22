@@ -195,10 +195,10 @@ def _save_geotiff(dsm: np.ndarray, rdsm: np.ndarray, georef, output_dir: Path) -
     from rasterio.transform import from_bounds
 
     transform = from_bounds(
-        georef.bounds_west,
-        georef.bounds_south,
-        georef.bounds_east,
-        georef.bounds_north,
+        georef.bounds[0],
+        georef.bounds[1],
+        georef.bounds[2],
+        georef.bounds[3],
         dsm.shape[1],
         dsm.shape[0],
     )

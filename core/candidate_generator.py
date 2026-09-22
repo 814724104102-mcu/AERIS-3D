@@ -34,6 +34,8 @@ class CandidateGeometry:
     height_unit: str  # "RELATIVE_DEPTH_UNITS" | "METRES_ESTIMATED"
 
     terrain_baseline: float  # terrain depth at object location
+    breadth: float = 0.0
+    angle: float = 0.0
     geometry_parameters: dict = field(default_factory=dict)
 
     # Set by scoring engine later
@@ -139,37 +141,43 @@ def generate_candidates(
             len(candidate_heights),
         )
 
+        breadth_variations = [0.8, 1.0, 1.2]
+        angle_variations = [-15.0, 0.0, 15.0]
         for h_val in candidate_heights:
-            cand_id = f"H{cand_counter:04d}"
-            bbox = region.bbox  # (y1, x1, y2, x2)
+            for b_val in breadth_variations:
+                for a_val in angle_variations:
+                    cand_id = f"H{cand_counter:04d}"
+                    bbox = region.bbox  # (y1, x1, y2, x2)
 
-            # Geometry parameters: simplified extruded box
-            geom = {
-                "footprint_bbox": list(bbox),
-                "centroid": list(region.centroid),
-                "area_px": region.area_px,
-                "expected_depth_at_top": float(
-                    terrain_at_object + h_val / (max_h + 1) * depth_scene_range
-                ),
-                "aspect_ratio": _bbox_aspect_ratio(bbox),
-            }
+                    # Geometry parameters: simplified extruded box
+                    geom = {
+                        "footprint_bbox": list(bbox),
+                        "centroid": list(region.centroid),
+                        "area_px": region.area_px,
+                        "expected_depth_at_top": float(
+                            terrain_at_object + h_val / (max_h + 1) * depth_scene_range
+                        ),
+                        "aspect_ratio": _bbox_aspect_ratio(bbox),
+                    }
 
-            unit = (
-                "METRES_ESTIMATED"
-                if scale_mode == "ANCHORED_METRIC"
-                else "RELATIVE_DEPTH_UNITS"
-            )
+                    unit = (
+                        "METRES_ESTIMATED"
+                        if scale_mode == "ANCHORED_METRIC"
+                        else "RELATIVE_DEPTH_UNITS"
+                    )
 
-            cand = CandidateGeometry(
-                candidate_id=cand_id,
-                object_id=obj_id,
-                height_value=float(h_val),
-                height_unit=unit,
-                terrain_baseline=terrain_at_object,
-                geometry_parameters=geom,
-            )
-            all_candidates.append(cand)
-            cand_counter += 1
+                    cand = CandidateGeometry(
+                        candidate_id=cand_id,
+                        object_id=obj_id,
+                        height_value=float(h_val),
+                        height_unit=unit,
+                        breadth=float(b_val),
+                        angle=float(a_val),
+                        terrain_baseline=terrain_at_object,
+                        geometry_parameters=geom,
+                    )
+                    all_candidates.append(cand)
+                    cand_counter += 1
 
     runtime_s = time.perf_counter() - t0
     log.info(

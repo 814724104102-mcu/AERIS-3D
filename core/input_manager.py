@@ -233,7 +233,7 @@ def _load_rgb_image(
         file_path=str(path),
         file_format=FileFormat.RGB_IMAGE,
         input_hash=input_hash,
-        image_rgb=original_rgb,
+        image_rgb=resized_rgb,
         image_preprocessed=preprocessed,
         georef=None,  # never fabricated
         raster_meta={},
@@ -353,11 +353,15 @@ def _load_geotiff(
     preprocessed = _normalize(resized_rgb, mean, std)
     elapsed = time.perf_counter() - t0
 
+    if georef is not None:
+        georef.pixel_size_x /= scale
+        georef.pixel_size_y /= scale
+
     return InputData(
         file_path=str(path),
         file_format=FileFormat.GEOTIFF,
         input_hash=input_hash,
-        image_rgb=rgb,
+        image_rgb=resized_rgb,
         image_preprocessed=preprocessed,
         georef=georef,
         raster_meta=raster_meta,

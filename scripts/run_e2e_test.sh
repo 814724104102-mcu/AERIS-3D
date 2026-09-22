@@ -14,7 +14,7 @@ python3 -c "import torch, numpy, cv2, fastapi, trimesh, skimage" || {
 }
 
 echo "2. Running Unit Tests (Phases 0-12)..."
-pytest tests/ -q --tb=short
+python3 -m pytest tests/ -q --tb=short
 
 echo "3. Running CLI Demo Integration Test..."
 python3 scripts/demo.py --no-cache

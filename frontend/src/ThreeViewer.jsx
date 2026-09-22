@@ -34,6 +34,7 @@ export default function ThreeViewer({ glbUrl, floodLevel = 0, onMeshClick, survi
   const floodRef       = useRef(floodLevel);
 
   const [loading,  setLoading]  = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [autoRot,  setAutoRot]  = useState(false);
   const [flyMode,  setFlyMode]  = useState(false);
   const [meshInfo, setMeshInfo] = useState(null);
@@ -171,6 +172,7 @@ export default function ThreeViewer({ glbUrl, floodLevel = 0, onMeshClick, survi
       undefined,
       (err) => {
         console.error('GLB load error:', err);
+        setLoadError(err.message || 'Failed to load GLB file');
         setLoading(false);
       }
     );
@@ -298,7 +300,20 @@ export default function ThreeViewer({ glbUrl, floodLevel = 0, onMeshClick, survi
   };
 
   // ── Best survivor for inspect card ──────────────────────────────
-  const firstSurvivor = survivors ? Object.values(survivors)[0] : null;
+  const matchedSurvivor = useMemo(() => {
+    if (!survivors || !inspectCard) return null;
+    const hitY = inspectCard.worldPos.y;
+    let closest = null;
+    let minDiff = Infinity;
+    for (const cand of Object.values(survivors)) {
+      const diff = Math.abs((cand.terrain_baseline + cand.height_value) - hitY);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = cand;
+      }
+    }
+    return closest;
+  }, [survivors, inspectCard]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -339,7 +354,7 @@ export default function ThreeViewer({ glbUrl, floodLevel = 0, onMeshClick, survi
       )}
 
       {/* Loading */}
-      {loading && (
+      {loading && !loadError && (
         <div style={{
           position: 'absolute', inset: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -350,14 +365,32 @@ export default function ThreeViewer({ glbUrl, floodLevel = 0, onMeshClick, survi
             style={{ animation: 'spin 1.2s linear infinite' }}>
             <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
           </svg>
-          <span style={{ color: '#4ecdc4', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
-            Loading terrain mesh…
+          <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.12em', color: '#4ecdc4', textTransform: 'uppercase' }}>
+            Parsing mesh structure...
+          </span>
+        </div>
+      )}
+
+      {/* Error */}
+      {loadError && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(5,5,8,0.85)', flexDirection: 'column', gap: 12,
+        }}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff4f4f" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#ff4f4f' }}>
+            {loadError}
           </span>
         </div>
       )}
 
       {/* Raycast inspect card */}
-      {inspectCard && firstSurvivor && (
+      {inspectCard && matchedSurvivor && (
         <div style={{
           position: 'absolute',
           left: Math.min(inspectCard.screenX + 12, window.innerWidth - 200),
@@ -375,13 +408,13 @@ export default function ThreeViewer({ glbUrl, floodLevel = 0, onMeshClick, survi
             ✓ Best Survivor
           </div>
           <div style={{ marginBottom: 3 }}>
-            Height: <span style={{ color: '#4ecdc4' }}>{firstSurvivor.height_value.toFixed(1)} {(firstSurvivor.height_unit || 'REL').slice(0,4)}</span>
+            Height: <span style={{ color: '#4ecdc4' }}>{matchedSurvivor.height_value.toFixed(1)} {(matchedSurvivor.height_unit || 'REL').slice(0,4)}</span>
           </div>
           <div style={{ marginBottom: 3 }}>
-            EGSS: <span style={{ color: '#4ecdc4' }}>{firstSurvivor.overall_score.toFixed(4)}</span>
+            EGSS: <span style={{ color: '#4ecdc4' }}>{matchedSurvivor.overall_score.toFixed(4)}</span>
           </div>
           <div style={{ marginBottom: 6 }}>
-            ID: <span style={{ color: 'var(--text-muted)' }}>{firstSurvivor.candidate_id}</span>
+            ID: <span style={{ color: 'var(--text-muted)' }}>{matchedSurvivor.candidate_id}</span>
           </div>
           <button
             onClick={() => setInspectCard(null)}
@@ -393,7 +426,7 @@ export default function ThreeViewer({ glbUrl, floodLevel = 0, onMeshClick, survi
       )}
 
       {/* Controls HUD */}
-      {!loading && (
+      {!loading && !loadError && (
         <div style={{
           position: 'absolute', bottom: 18, left: '50%', transform: 'translateX(-50%)',
           display: 'flex', alignItems: 'center', gap: 2,

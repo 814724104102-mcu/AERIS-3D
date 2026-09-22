@@ -442,6 +442,8 @@ export default function App() {
   const [floodLevel, setFloodLevel] = useState(0);   // 0–5 m continuous
   const [liveWeights, setLiveWeights] = useState(null); // null = use server weights
   const [wsLog, setWsLog]       = useState([]);         // live stage log
+  const [liveSdrlLog, setLiveSdrlLog] = useState([]);
+  const [selectedObjId, setSelectedObjId] = useState(null);
 
   const fileInputRef  = useRef(null);
   const rightPanelRef = useRef(null);
@@ -472,6 +474,8 @@ export default function App() {
           setProgress(msg.progress);
           setStatus('running');
           setWsLog(prev => [...prev.slice(-20), { stage: msg.stage, progress: msg.progress }]);
+        } else if (msg.type === 'sdrl') {
+          setLiveSdrlLog(prev => [msg.log, ...prev]);
         } else if (msg.type === 'done') {
           setStatus('done');
           setProgress(100);
@@ -541,8 +545,10 @@ export default function App() {
     setProgress(0);
     setStage('');
     setWsLog([]);
+    setLiveSdrlLog([]);
     setLiveWeights(null);
     setFloodLevel(0);
+    setSelectedObjId(null);
   }, []);
 
   const handleFileChange = e => {
@@ -578,9 +584,9 @@ export default function App() {
   const isDone = status === 'done';
 
   // Best survivor (first object)
-  const firstSurvivorObjId = results?.survivors
+  const firstSurvivorObjId = selectedObjId || (results?.survivors
     ? Object.keys(results.survivors)[0]
-    : null;
+    : null);
   const firstSurvivor = firstSurvivorObjId
     ? results.survivors[firstSurvivorObjId]
     : null;
@@ -596,7 +602,9 @@ export default function App() {
   const rescored = useMemo(() => {
     if (!results?.candidates_table || !liveWeights) return results?.candidates_table;
     const REJECTION_THRESHOLD = 0.35;
-    return results.candidates_table.map(c => {
+    
+    // First pass: compute new scores
+    const withScores = results.candidates_table.map(c => {
       const cs = c.component_scores || {};
       const score = Object.entries(liveWeights).reduce((sum, [k, w]) => {
         return sum + (cs[k] ?? 0) * w;
@@ -604,7 +612,24 @@ export default function App() {
       return {
         ...c,
         overall_score: Math.round(score * 10000) / 10000,
-        status: score >= REJECTION_THRESHOLD ? 'SURVIVED' : 'REJECTED',
+      };
+    });
+    
+    // Group by object_id to find max
+    const bestByObj = {};
+    for (const c of withScores) {
+      if (!bestByObj[c.object_id] || c.overall_score > bestByObj[c.object_id].overall_score) {
+        bestByObj[c.object_id] = c;
+      }
+    }
+    
+    // Second pass: set status based on argmax AND threshold
+    return withScores.map(c => {
+      const isBest = bestByObj[c.object_id].candidate_id === c.candidate_id;
+      const passesThresh = c.overall_score >= REJECTION_THRESHOLD;
+      return {
+        ...c,
+        status: (isBest && passesThresh) ? 'SURVIVED' : 'REJECTED',
       };
     });
   }, [results, liveWeights]);
@@ -616,6 +641,82 @@ export default function App() {
   }, [firstSurvivor]);
 
   const activeWeights = liveWeights || defaultWeights || {};
+  const generateDisasterReport = () => {
+    if (!rescored || !results) return;
+    const survivedCands = rescored.filter(c => c.status === 'SURVIVED');
+    const lines = [
+      "AERIS-3D DISASTER RISK REPORT",
+      "=============================",
+      `Job ID: ${results.job_id}`,
+      `Simulated Flood Level: +${floodLevel.toFixed(1)} m`,
+      `Terrain Type: ${results.terrain.terrain_roughness < 0.05 ? 'Flat / Low Relief' : results.terrain.terrain_roughness < 0.15 ? 'Moderate Slope' : 'High Relief / Steep'}`,
+      "",
+      "STRUCTURE ASSESSMENT:",
+      "---------------------"
+    ];
+    
+    survivedCands.forEach(cand => {
+       const h = cand.height_value;
+       let risk = 'SAFE';
+       if (floodLevel > 0) {
+           if (h < floodLevel * 1.5) risk = 'HIGH RISK (FLOODED)';
+           else if (h < floodLevel * 2.5) risk = 'MODERATE RISK';
+       }
+       lines.push(`Object: ${cand.object_id} | Height: ${h.toFixed(1)} | Flood Risk: ${risk} | Score: ${cand.overall_score.toFixed(4)}`);
+    });
+    
+    lines.push("");
+    lines.push("DECISION SUPPORT DISCLAIMER:");
+    lines.push("⚠ SCENARIO SIMULATION — NOT A FLOOD FORECAST.");
+    lines.push("Aerial/nadir imagery may show domain-shift artifacts. Use as structural guidance only.");
+    
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aeris3d_risk_report_${results.job_id}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const generateDisasterReport = () => {
+    if (!rescored || !results) return;
+    const survivedCands = rescored.filter(c => c.status === 'SURVIVED');
+    const lines = [
+      "AERIS-3D DISASTER RISK REPORT",
+      "=============================",
+      `Job ID: ${results.job_id}`,
+      `Simulated Flood Level: +${floodLevel.toFixed(1)} m`,
+      `Terrain Type: ${results.terrain.terrain_roughness < 0.05 ? 'Flat / Low Relief' : results.terrain.terrain_roughness < 0.15 ? 'Moderate Slope' : 'High Relief / Steep'}`,
+      "",
+      "STRUCTURE ASSESSMENT:",
+      "---------------------"
+    ];
+    
+    survivedCands.forEach(cand => {
+       const h = cand.height_value;
+       let risk = 'SAFE';
+       if (floodLevel > 0) {
+           if (h < floodLevel * 1.5) risk = 'HIGH RISK (FLOODED)';
+           else if (h < floodLevel * 2.5) risk = 'MODERATE RISK';
+       }
+       lines.push(`Object: ${cand.object_id} | Height: ${h.toFixed(1)} | Flood Risk: ${risk} | Score: ${cand.overall_score.toFixed(4)}`);
+    });
+    
+    lines.push("");
+    lines.push("DECISION SUPPORT DISCLAIMER:");
+    lines.push("⚠ SCENARIO SIMULATION — NOT A FLOOD FORECAST.");
+    lines.push("Aerial/nadir imagery may show domain-shift artifacts. Use as structural guidance only.");
+    
+    const blob = new Blob([lines.join('\\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aeris3d_risk_report_${results.job_id}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const activeCandidates = rescored || results?.candidates_table || [];
 
   const glbUrl = isDone && jobId ? `${API_BASE}/file/${jobId}/mesh.glb` : null;
@@ -643,6 +744,19 @@ export default function App() {
             glbUrl={glbUrl}
             floodLevel={floodLevel}
             survivors={results?.survivors}
+            rescored={rescored}
+            imageSize={results?.input?.size}
+            onMeshClick={(card) => {
+               // In a real app we'd map UV/face to object ID.
+               // Since the mesh is a single GLB without per-object submeshes right now,
+               // we just cycle through survivors for the demo.
+               if (results && results.survivors) {
+                   const ids = Object.keys(results.survivors);
+                   const currentIdx = ids.indexOf(firstSurvivorObjId);
+                   const nextIdx = (currentIdx + 1) % ids.length;
+                   setSelectedObjId(ids[nextIdx]);
+               }
+            }}
           />
         ) : (
           <IdleCenterState isProcessing={isProcessing} />
@@ -944,13 +1058,33 @@ export default function App() {
                     </p>
                   </div>
 
+                  <div style={{ marginTop: 16 }}>
+                    <SectionHeader title="Reference Comparison" />
+                    {results.reference_metrics ? (
+                       <div style={{ background: 'var(--bg-card)', padding: '10px', borderRadius: '4px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                             <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>MAE</span>
+                             <span style={{ fontSize: 11, color: '#00e676', fontFamily: 'var(--text-mono)' }}>{results.reference_metrics.mae.toFixed(2)} m</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                             <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>RMSE</span>
+                             <span style={{ fontSize: 11, color: '#ffc107', fontFamily: 'var(--text-mono)' }}>{results.reference_metrics.rmse.toFixed(2)} m</span>
+                          </div>
+                       </div>
+                    ) : (
+                       <div style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          Reference data unavailable — quantitative ground-truth evaluation skipped.
+                       </div>
+                    )}
+                  </div>
+
                   {/* SDRL log preview */}
-                  {results.sdrl_log && results.sdrl_log.length > 0 && (
+                  {(liveSdrlLog.length > 0 || (results?.sdrl_log && results.sdrl_log.length > 0)) && (
                     <div>
                       <SectionHeader title="SDRL Iterations" />
                       <div style={{ maxHeight: 100, overflowY: 'auto', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', padding: '8px 10px' }}>
-                        {results.sdrl_log.slice(0, 6).map((row, i) => (
-                          <div key={i} style={{ fontSize: 10, fontFamily: 'var(--text-mono)', color: 'var(--text-dim)', padding: '2px 0', borderBottom: i < 5 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                        {(liveSdrlLog.length > 0 ? liveSdrlLog : results.sdrl_log).slice(0, 10).map((row, i) => (
+                          <div key={i} style={{ fontSize: 10, fontFamily: 'var(--text-mono)', color: 'var(--text-dim)', padding: '2px 0', borderBottom: i < 9 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                             iter {row.iteration} · {row.candidate_id} · score={typeof row.score === 'number' ? row.score.toFixed(4) : row.score} ·{' '}
                             <span style={{ color: row.status === 'SURVIVED' ? 'var(--success)' : 'var(--danger)' }}>
                               {row.status}
@@ -1221,6 +1355,10 @@ export default function App() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div>
+                    <SectionHeader title="Disaster Assessment" />
+                    <button onClick={generateDisasterReport} className="btn btn-primary" style={{ width: '100%', marginBottom: 16 }}>
+                      Download Disaster Risk Report
+                    </button>
                     <SectionHeader title="Downloadable Assets" />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {(results.output_files || []).map(fname => {

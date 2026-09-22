@@ -271,8 +271,34 @@ def _run_sdrl_for_object(
         )
 
     # Final iteration log: mark all survivors as SURVIVED
-    survivor = surviving[0]  # highest score
+    surviving_sorted = sorted(surviving, key=lambda x: x.overall_score, reverse=True)
+    survivor = surviving_sorted[0]  # highest score
+    
+    margin = 0.0
+    if len(surviving_sorted) > 1:
+        margin = survivor.overall_score - surviving_sorted[1].overall_score
+    elif rejected_list:
+        margin = survivor.overall_score - max(rejected_list, key=lambda x: x.overall_score).overall_score
 
+    survivor.survival_margin = float(margin)
+    survivor.confidence = "LOW CONFIDENCE" if margin < 0.05 else "HIGH"
+
+    # Only keep the argmax survivor!
+    for es in surviving_sorted[1:]:
+        rejected_list.append(es)
+        logs.append(
+            IterationLog(
+                iteration=n_iters,
+                candidate_id=es.candidate_id,
+                object_id=obj_id,
+                height_value=es.height_value,
+                score=es.overall_score,
+                status="REJECTED",
+                rejection_reason="not the argmax survivor",
+                refinement=None,
+            )
+        )
+    
     return logs, survivor, rejected_list, n_iters + 1
 
 

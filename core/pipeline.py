@@ -113,6 +113,7 @@ def run_pipeline(
     input_data: InputData,
     depth_result: DepthResult,
     config: dict,
+    sdrl_callback = None,
 ) -> PipelineResult:
     """
     Run the full AERIS-3D analysis pipeline (Phases 3–12).
